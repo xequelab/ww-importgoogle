@@ -3,14 +3,14 @@
     <!-- Header -->
     <div class="event-group-header">
       <!-- Checkbox do grupo -->
-      <label class="checkbox-label" @click.stop>
+      <div class="checkbox-container" @click.stop="handleGroupToggle">
         <input
           type="checkbox"
           :checked="allSelected"
           :indeterminate.prop="someSelected"
-          @change="onGroupCheckboxChange"
+          tabindex="-1"
         />
-      </label>
+      </div>
 
       <!-- Área clicável para expandir -->
       <div class="group-info-area" @click="isExpanded = !isExpanded">
@@ -40,16 +40,16 @@
         class="event-item"
       >
         <!-- Checkbox do evento -->
-        <label class="checkbox-label" @click.stop>
+        <div class="checkbox-container" @click.stop="handleEventToggle(event.google_event_id)">
           <input
             type="checkbox"
             :checked="selectedIds.includes(event.google_event_id)"
-            @change="onEventCheckboxChange(event.google_event_id)"
+            tabindex="-1"
           />
-        </label>
+        </div>
 
         <!-- Info do evento (clicável) -->
-        <div class="event-details" @click="toggleEvent(event.google_event_id)">
+        <div class="event-details" @click="handleEventToggle(event.google_event_id)">
           <span class="event-time">{{ formatDate(event.data_inicio) }}</span>
           <span v-if="event.duracao_real_minutos" class="event-duration">
             ({{ formatDuration(event.duracao_real_minutos) }})
@@ -93,17 +93,13 @@ export default {
       return first.getTime() === last.getTime() ? fmt(first) : `${fmt(first)} - ${fmt(last)}`;
     });
 
-    const onGroupCheckboxChange = (e) => {
-      const shouldSelect = e.target.checked;
+    const handleGroupToggle = () => {
       const eventIds = props.events.map(ev => ev.google_event_id);
+      const shouldSelect = !allSelected.value;
       emit('toggle-group', { ids: eventIds, select: shouldSelect });
     };
 
-    const onEventCheckboxChange = (eventId) => {
-      emit('toggle', eventId);
-    };
-
-    const toggleEvent = (eventId) => {
+    const handleEventToggle = (eventId) => {
       emit('toggle', eventId);
     };
 
@@ -129,9 +125,8 @@ export default {
       allSelected,
       someSelected,
       dateRange,
-      onGroupCheckboxChange,
-      onEventCheckboxChange,
-      toggleEvent,
+      handleGroupToggle,
+      handleEventToggle,
       formatDate,
       formatDuration
     };
@@ -154,18 +149,19 @@ export default {
   padding: 12px 16px;
 }
 
-.checkbox-label {
+.checkbox-container {
   display: flex;
   align-items: center;
   cursor: pointer;
-  margin: 0;
+  padding: 4px;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-container input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
   margin: 0;
+  pointer-events: none;
 }
 
 .group-info-area {
