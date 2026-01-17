@@ -576,7 +576,20 @@ export default {
     const paginatedGroupedEvents = computed(() => {
       const start = (currentPage.value - 1) * eventsPerPage.value;
       const end = start + eventsPerPage.value;
-      return groupedEvents.value.slice(start, end);
+      const result = groupedEvents.value.slice(start, end);
+
+      // Debug: Log de paginação
+      console.log('[ImportGoogleCalendar] Paginação:', {
+        currentPage: currentPage.value,
+        eventsPerPage: eventsPerPage.value,
+        start,
+        end,
+        totalGroupedItems: groupedEvents.value.length,
+        paginatedItems: result.length,
+        itemTypes: result.map(item => ({ type: item.type, title: item.type === 'group' ? item.title : item.event.titulo, count: item.type === 'group' ? item.events.length : 1 }))
+      });
+
+      return result;
     });
 
     // ===== Métodos =====
