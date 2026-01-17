@@ -1,8 +1,8 @@
 <template>
   <div class="event-group" :style="groupStyle" data-component="EventGroup" style="border: 3px solid blue !important; min-height: 50px !important; background: lightblue !important;">
     <!-- Header do grupo (clicável para expandir/colapsar) -->
-    <div class="group-header" :style="headerStyle" @click="toggleExpanded" style="border: 2px solid green !important; padding: 10px !important;">
-      <div class="group-checkbox" :style="checkboxContainerStyle" @click.stop>
+    <div class="group-header" :style="headerStyle" style="border: 2px solid green !important; padding: 10px !important;">
+      <div class="group-checkbox" :style="checkboxContainerStyle" @click.stop="() => {}">
         <input
           type="checkbox"
           :checked="allSelected"
@@ -24,7 +24,7 @@
         </div>
       </div>
 
-      <div class="group-content">
+      <div class="group-content" @click="toggleExpanded">
         <div class="group-title-row">
           <span class="group-title" :style="titleStyle">{{ groupTitle }}</span>
           <span class="group-count" :style="countStyle">({{ events.length }} ocorrências)</span>
@@ -37,7 +37,7 @@
         </div>
       </div>
 
-      <div class="expand-icon" :class="{ expanded: isExpanded }">
+      <div class="expand-icon" :class="{ expanded: isExpanded }" @click="toggleExpanded">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
@@ -46,17 +46,21 @@
 
     <!-- Debug isExpanded -->
     <div style="background: orange; padding: 5px; font-size: 11px;">
-      DEBUG: isExpanded = {{ isExpanded }}
+      DEBUG: isExpanded = {{ isExpanded }}, events.length = {{ events.length }}
     </div>
 
     <!-- Lista de eventos individuais (expandida) -->
-    <div v-if="isExpanded" class="group-events" style="background: pink !important; border: 2px solid purple !important;">
+    <div v-if="isExpanded" class="group-events" style="background: pink !important; border: 2px solid purple !important; min-height: 100px !important;">
+      <div style="background: lime; padding: 5px; font-size: 10px;">
+        DEBUG: Dentro do v-if. Renderizando {{ events.length }} eventos
+      </div>
       <div
         v-for="event in events"
         :key="event.google_event_id"
         class="group-event-item"
         :style="eventItemStyle"
         @click="$emit('toggle', event.google_event_id)"
+        style="background: white !important; border: 1px solid black !important; margin: 2px !important; padding: 5px !important;"
       >
         <div class="event-checkbox" :style="checkboxContainerStyle" @click.stop>
           <input
