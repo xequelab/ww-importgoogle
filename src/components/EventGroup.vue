@@ -1,7 +1,7 @@
 <template>
-  <div class="event-group" :style="groupStyle" data-component="EventGroup">
+  <div class="event-group" :style="groupStyle" data-component="EventGroup" style="border: 3px solid blue !important; min-height: 50px !important; background: lightblue !important;">
     <!-- Header do grupo (clicável para expandir/colapsar) -->
-    <div class="group-header" :style="headerStyle" @click="toggleExpanded">
+    <div class="group-header" :style="headerStyle" @click="toggleExpanded" style="border: 2px solid green !important; padding: 10px !important;">
       <div class="group-checkbox" :style="checkboxContainerStyle" @click.stop>
         <input
           type="checkbox"
