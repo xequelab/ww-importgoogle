@@ -254,12 +254,38 @@ Content-Type: application/json
     :fetch-events-endpoint="supabaseUrl + '/functions/v1/buscar-eventos-google'"
     :import-events-endpoint="supabaseUrl + '/functions/v1/importar-eventos-selecionados'"
     :auth-token="userToken"
+    :existing-appointments="existingAppointments"
     @close="showImportPopup = false"
     @import-success="handleImportSuccess"
     @import-error="handleImportError"
   />
 </ww-popup>
 ```
+
+### Evitando Reimportação de Eventos
+
+Para impedir que eventos já importados sejam importados novamente, passe a propriedade `existingAppointments`:
+
+```javascript
+// Estrutura esperada: array de objetos com google_event_id
+existingAppointments = [
+  {
+    google_event_id: "abc123xyz",
+    // ... outros campos do agendamento
+  },
+  {
+    google_event_id: "def456uvw",
+    // ... outros campos
+  }
+]
+```
+
+**Comportamento:**
+- ✅ Eventos com `google_event_id` já existente são identificados automaticamente
+- ✅ Badge verde "Importado" é exibido no lugar do checkbox
+- ✅ Eventos importados não podem ser selecionados
+- ✅ Ignorados na pré-seleção e no "Selecionar todos"
+- ✅ Estilo visual diferenciado (opacidade reduzida)
 
 ## Notas de Implementação
 

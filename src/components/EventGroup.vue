@@ -39,8 +39,14 @@
         :key="event.google_event_id"
         class="event-item"
       >
-        <!-- Checkbox do evento -->
-        <div class="checkbox-container" @click.stop="handleEventToggle(event.google_event_id)">
+        <!-- Importado badge ou checkbox -->
+        <div v-if="importedIds.has(event.google_event_id)" class="event-imported-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Importado</span>
+        </div>
+        <div v-else class="checkbox-container" @click.stop="handleEventToggle(event.google_event_id)">
           <input
             type="checkbox"
             :checked="selectedIds.includes(event.google_event_id)"
@@ -49,7 +55,11 @@
         </div>
 
         <!-- Info do evento (clicável) -->
-        <div class="event-details" @click="handleEventToggle(event.google_event_id)">
+        <div
+          class="event-details"
+          :class="{ 'event-imported': importedIds.has(event.google_event_id) }"
+          @click="handleEventToggle(event.google_event_id)"
+        >
           <span class="event-time">{{ formatDate(event.data_inicio) }}</span>
           <span v-if="event.duracao_real_minutos" class="event-duration">
             ({{ formatDuration(event.duracao_real_minutos) }})
@@ -68,20 +78,25 @@ export default {
   props: {
     groupTitle: { type: String, required: true },
     events: { type: Array, required: true },
-    selectedIds: { type: Array, default: () => [] }
+    selectedIds: { type: Array, default: () => [] },
+    importedIds: { type: Set, default: () => new Set() }
   },
   emits: ['toggle', 'toggle-group'],
   setup(props, { emit }) {
     const isExpanded = ref(false);
 
+    const selectableEvents = computed(() => {
+      return props.events.filter(e => !props.importedIds.has(e.google_event_id));
+    });
+
     const allSelected = computed(() => {
-      if (props.events.length === 0) return false;
-      return props.events.every(e => props.selectedIds.includes(e.google_event_id));
+      if (selectableEvents.value.length === 0) return false;
+      return selectableEvents.value.every(e => props.selectedIds.includes(e.google_event_id));
     });
 
     const someSelected = computed(() => {
-      const selected = props.events.filter(e => props.selectedIds.includes(e.google_event_id));
-      return selected.length > 0 && selected.length < props.events.length;
+      const selected = selectableEvents.value.filter(e => props.selectedIds.includes(e.google_event_id));
+      return selected.length > 0 && selected.length < selectableEvents.value.length;
     });
 
     const dateRange = computed(() => {
@@ -94,12 +109,14 @@ export default {
     });
 
     const handleGroupToggle = () => {
-      const eventIds = props.events.map(ev => ev.google_event_id);
+      if (selectableEvents.value.length === 0) return;
+      const eventIds = selectableEvents.value.map(ev => ev.google_event_id);
       const shouldSelect = !allSelected.value;
       emit('toggle-group', { ids: eventIds, select: shouldSelect });
     };
 
     const handleEventToggle = (eventId) => {
+      if (props.importedIds.has(eventId)) return;
       emit('toggle', eventId);
     };
 
@@ -124,6 +141,7 @@ export default {
       isExpanded,
       allSelected,
       someSelected,
+      selectableEvents,
       dateRange,
       handleGroupToggle,
       handleEventToggle,
@@ -244,5 +262,29 @@ export default {
 .event-duration {
   color: #718096;
   margin-left: 6px;
+}
+
+.event-imported-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #E6FFFA;
+  border: 1px solid #38A169;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #38A169;
+  flex-shrink: 0;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.event-imported {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

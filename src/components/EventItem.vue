@@ -1,11 +1,17 @@
 <template>
   <div
     class="event-item"
-    :class="{ selected }"
+    :class="{ selected, imported: isImported }"
     :style="itemStyle"
-    @click="$emit('toggle')"
+    @click="isImported ? null : $emit('toggle')"
   >
-    <div class="event-checkbox" :style="checkboxContainerStyle">
+    <div v-if="isImported" class="event-imported-badge" :style="importedBadgeStyle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>Importado</span>
+    </div>
+    <div v-else class="event-checkbox" :style="checkboxContainerStyle">
       <input
         type="checkbox"
         :checked="selected"
@@ -82,6 +88,10 @@ export default {
       required: true
     },
     selected: {
+      type: Boolean,
+      default: false
+    },
+    isImported: {
       type: Boolean,
       default: false
     },
@@ -191,6 +201,11 @@ export default {
       '--bg-color': props.checkboxStyles.backgroundColor || '#FFFFFF'
     }));
 
+    const importedBadgeStyle = computed(() => ({
+      color: '#38A169',
+      fontSize: props.styles.smallFontSize || '12px'
+    }));
+
     return {
       eventTypeLabel,
       formattedDateTime,
@@ -201,7 +216,8 @@ export default {
       badgeStyle,
       checkboxContainerStyle,
       checkboxInputStyle,
-      checkboxCustomStyle
+      checkboxCustomStyle,
+      importedBadgeStyle
     };
   }
 };
@@ -213,7 +229,7 @@ export default {
   align-items: flex-start;
   gap: 12px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
   border: 1px solid transparent;
 
   &:hover {
@@ -223,6 +239,34 @@ export default {
   &.selected {
     border-color: var(--border-color);
     background-color: var(--hover-color);
+  }
+
+  &.imported {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #F7FAFC;
+
+    &:hover {
+      background-color: #F7FAFC;
+    }
+  }
+}
+
+.event-imported-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: #E6FFFA;
+  border: 1px solid #38A169;
+  border-radius: 6px;
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-top: 2px;
+
+  svg {
+    width: 16px;
+    height: 16px;
   }
 }
 

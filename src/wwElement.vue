@@ -206,6 +206,10 @@ export default {
     Pagination
   },
   props: {
+    existingAppointments: {
+      type: Array,
+      default: () => []
+    },
     content: {
       type: Object,
       required: true
@@ -223,6 +227,15 @@ export default {
   },
   emits: ['trigger-event'],
   setup(props, { emit }) {
+    // ===== IDs de eventos já importados =====
+    const importedGoogleIds = computed(() => {
+      if (!Array.isArray(props.existingAppointments)) return new Set();
+      const ids = props.existingAppointments
+        .map(item => item?.google_event_id)
+        .filter(Boolean);
+      return new Set(ids);
+    });
+
     // ===== Estado do editor =====
     const isEditing = computed(() => {
       /* wwEditor:start */
@@ -475,18 +488,27 @@ export default {
     });
 
     const allFilteredSelected = computed(() => {
-      if (filteredEvents.value.length === 0) return false;
-      return filteredEvents.value.every(event =>
+      // Considera apenas eventos que podem ser selecionados (não importados)
+      const selectableEvents = filteredEvents.value.filter(
+        e => !importedGoogleIds.value.has(e.google_event_id)
+      );
+
+      if (selectableEvents.length === 0) return false;
+      return selectableEvents.every(event =>
         selectedEventIds.value.includes(event.google_event_id)
       );
     });
 
     const someFilteredSelected = computed(() => {
-      if (filteredEvents.value.length === 0) return false;
-      const selectedInFiltered = filteredEvents.value.filter(event =>
+      const selectableEvents = filteredEvents.value.filter(
+        e => !importedGoogleIds.value.has(e.google_event_id)
+      );
+
+      if (selectableEvents.length === 0) return false;
+      const selectedInFiltered = selectableEvents.filter(event =>
         selectedEventIds.value.includes(event.google_event_id)
       );
-      return selectedInFiltered.length > 0 && selectedInFiltered.length < filteredEvents.value.length;
+      return selectedInFiltered.length > 0 && selectedInFiltered.length < selectableEvents.length;
     });
 
     const canFetch = computed(() => {
@@ -596,11 +618,15 @@ export default {
 
         events.value = data.events || [];
 
-        // Pré-selecionar eventos (exceto aniversários se configurado)
+        // Pré-selecionar eventos (exceto aniversários se configurado e eventos já importados)
+        const selectableEvents = events.value.filter(
+          e => !importedGoogleIds.value.has(e.google_event_id)
+        );
+
         if (preselectBirthdays.value) {
-          selectedEventIds.value = events.value.map(e => e.google_event_id);
+          selectedEventIds.value = selectableEvents.map(e => e.google_event_id);
         } else {
-          selectedEventIds.value = events.value
+          selectedEventIds.value = selectableEvents
             .filter(e => e.event_type !== 'birthday')
             .map(e => e.google_event_id);
         }
@@ -673,6 +699,7 @@ export default {
 
     const toggleEventSelection = (eventId) => {
       if (isEditing.value) return;
+      if (importedGoogleIds.value.has(eventId)) return; // Ignora eventos já importados
 
       const index = selectedEventIds.value.indexOf(eventId);
       if (index === -1) {
@@ -698,14 +725,19 @@ export default {
     const toggleAllFiltered = () => {
       if (isEditing.value) return;
 
+      // Filtra apenas eventos que NÃO foram importados
+      const selectableFilteredEvents = filteredEvents.value.filter(
+        e => !importedGoogleIds.value.has(e.google_event_id)
+      );
+
       if (allFilteredSelected.value) {
-        // Desmarcar todos os filtrados
-        const filteredIds = filteredEvents.value.map(e => e.google_event_id);
-        selectedEventIds.value = selectedEventIds.value.filter(id => !filteredIds.includes(id));
+        // Desmarcar todos os filtrados (exceto importados)
+        const selectableIds = selectableFilteredEvents.map(e => e.google_event_id);
+        selectedEventIds.value = selectedEventIds.value.filter(id => !selectableIds.includes(id));
       } else {
-        // Marcar todos os filtrados
-        const filteredIds = filteredEvents.value.map(e => e.google_event_id);
-        const newIds = [...new Set([...selectedEventIds.value, ...filteredIds])];
+        // Marcar todos os filtrados (exceto importados)
+        const selectableIds = selectableFilteredEvents.map(e => e.google_event_id);
+        const newIds = [...new Set([...selectedEventIds.value, ...selectableIds])];
         selectedEventIds.value = newIds;
       }
     };
