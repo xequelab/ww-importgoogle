@@ -1,32 +1,34 @@
 <template>
   <div class="event-group-wrapper">
     <!-- Header clicável -->
-    <div class="event-group-header" @click="toggleExpanded">
-      <div class="checkbox-wrapper" @click.stop>
+    <div class="event-group-header">
+      <div class="checkbox-wrapper" @click="handleToggleAll">
         <input
           type="checkbox"
           :checked="allSelected"
           :indeterminate.prop="someSelected"
-          @change="handleToggleAll"
+          @click.prevent
         />
       </div>
 
-      <div class="event-group-info">
-        <strong>{{ groupTitle }}</strong>
-        <span class="event-count">({{ events.length }} ocorrências)</span>
-        <span class="event-dates">{{ dateRange }}</span>
-      </div>
+      <div class="event-group-title-area" @click="toggleExpanded">
+        <div class="event-group-info">
+          <strong>{{ groupTitle }}</strong>
+          <span class="event-count">({{ events.length }} ocorrências)</span>
+          <span class="event-dates">{{ dateRange }}</span>
+        </div>
 
-      <svg
-        class="expand-arrow"
-        :class="{ rotated: isExpanded }"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
+        <svg
+          class="expand-arrow"
+          :class="{ rotated: isExpanded }"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
     </div>
 
     <!-- Lista expandida -->
@@ -35,17 +37,16 @@
         v-for="event in events"
         :key="event.google_event_id"
         class="event-group-item"
-        @click="handleToggleEvent(event.google_event_id)"
       >
-        <div class="checkbox-wrapper" @click.stop>
+        <div class="checkbox-wrapper" @click="handleToggleEvent(event.google_event_id)">
           <input
             type="checkbox"
             :checked="selectedIds.includes(event.google_event_id)"
-            @change="handleToggleEvent(event.google_event_id)"
+            @click.prevent
           />
         </div>
 
-        <div class="event-item-info">
+        <div class="event-item-info" @click="handleToggleEvent(event.google_event_id)">
           <span class="event-date">{{ formatDate(event.data_inicio) }}</span>
           <span v-if="event.duracao_real_minutos" class="event-duration">
             ({{ formatDuration(event.duracao_real_minutos) }})
@@ -151,12 +152,19 @@ export default {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  cursor: pointer;
   user-select: none;
 }
 
-.event-group-header:hover {
-  background: #F7FAFC;
+.event-group-title-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.event-group-title-area:hover {
+  opacity: 0.8;
 }
 
 .checkbox-wrapper {
@@ -217,7 +225,6 @@ export default {
   gap: 12px;
   padding: 10px 16px 10px 48px;
   border-bottom: 1px solid #E2E8F0;
-  cursor: pointer;
 }
 
 .event-group-item:last-child {
@@ -233,6 +240,7 @@ export default {
   flex: 1;
   font-size: 13px;
   color: #4A5568;
+  cursor: pointer;
 }
 
 .event-date {
