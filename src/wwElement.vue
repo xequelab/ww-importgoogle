@@ -523,21 +523,6 @@ export default {
         groups[normalizedKey].events.push(event);
       });
 
-      // Debug: Log de agrupamento
-      if (filteredEvents.value.length > 0) {
-        const groupCount = Object.keys(groups).length;
-        const multiEventGroups = Object.values(groups).filter(g => g.events.length > 1);
-        console.log('[ImportGoogleCalendar] Agrupamento:', {
-          totalEvents: filteredEvents.value.length,
-          totalGroups: groupCount,
-          multiEventGroups: multiEventGroups.length,
-          groups: Object.entries(groups).map(([key, group]) => ({
-            key,
-            displayTitle: group.displayTitle,
-            count: group.events.length
-          }))
-        });
-      }
 
       // Separar grupos (2+ eventos) de eventos únicos
       const result = [];
@@ -577,17 +562,6 @@ export default {
       const start = (currentPage.value - 1) * eventsPerPage.value;
       const end = start + eventsPerPage.value;
       const result = groupedEvents.value.slice(start, end);
-
-      // Debug: Log de paginação
-      console.log('[ImportGoogleCalendar] Paginação:', {
-        currentPage: currentPage.value,
-        eventsPerPage: eventsPerPage.value,
-        start,
-        end,
-        totalGroupedItems: groupedEvents.value.length,
-        paginatedItems: result.length,
-        itemTypes: result.map(item => ({ type: item.type, title: item.type === 'group' ? item.title : item.event.titulo, count: item.type === 'group' ? item.events.length : 1 }))
-      });
 
       return result;
     });
