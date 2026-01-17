@@ -1,0 +1,13 @@
+{
+  "name": "ww-import-google-calendar",
+  "version": "1.0.0",
+  "description": "Componente WeWeb para importar eventos do Google Calendar",
+  "author": "WeWeb Component",
+  "license": "MIT",
+  "weweb": {
+    "name": "Import Google Calendar",
+    "icon": "calendar",
+    "category": "forms",
+    "keywords": ["google", "calendar", "import", "events", "agenda"]
+  }
+}
