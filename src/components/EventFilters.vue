@@ -47,14 +47,13 @@
 
     <!-- Checkbox selecionar todos -->
     <div class="select-all-row">
-      <label class="checkbox-label" :style="checkboxLabelStyle" @click="$emit('toggle-all')">
+      <div class="checkbox-label" :style="checkboxLabelStyle" @click.stop="$emit('toggle-all')">
         <div class="checkbox-wrapper" :style="checkboxWrapperStyle">
           <input
             type="checkbox"
             :checked="allSelected"
-            :indeterminate="someSelected && !allSelected"
-            @click.stop
-            @change="$emit('toggle-all')"
+            :indeterminate.prop="someSelected && !allSelected"
+            tabindex="-1"
           />
           <div
             class="checkbox-custom"
@@ -70,7 +69,7 @@
           </div>
         </div>
         <span>{{ labelSelectAll }}</span>
-      </label>
+      </div>
     </div>
   </div>
 </template>
@@ -324,7 +323,7 @@ export default {
   input[type="checkbox"] {
     position: absolute;
     opacity: 0;
-    cursor: pointer;
+    pointer-events: none;
   }
 
   .checkbox-custom {
