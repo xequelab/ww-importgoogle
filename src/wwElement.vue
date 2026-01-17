@@ -61,18 +61,33 @@
         @toggle-all="toggleAllFiltered"
       />
 
-      <!-- Lista de eventos -->
+      <!-- Lista de eventos (agrupados) -->
       <div v-if="events.length > 0" class="events-list" :style="eventsListStyle">
-        <EventItem
-          v-for="event in paginatedEvents"
-          :key="event.google_event_id"
-          :event="event"
-          :selected="selectedEventIds.includes(event.google_event_id)"
-          :styles="eventItemStyles"
-          :checkbox-styles="checkboxStyles"
-          :badge-colors="badgeColors"
-          @toggle="toggleEventSelection(event.google_event_id)"
-        />
+        <template v-for="item in paginatedGroupedEvents" :key="item.type === 'group' ? `group-${item.title}` : item.event.google_event_id">
+          <!-- Grupo de eventos recorrentes -->
+          <EventGroup
+            v-if="item.type === 'group'"
+            :group-title="item.title"
+            :events="item.events"
+            :selected-ids="selectedEventIds"
+            :styles="eventItemStyles"
+            :checkbox-styles="checkboxStyles"
+            :badge-colors="badgeColors"
+            @toggle="toggleEventSelection"
+            @toggle-group="toggleGroupSelection"
+          />
+
+          <!-- Evento único -->
+          <EventItem
+            v-else
+            :event="item.event"
+            :selected="selectedEventIds.includes(item.event.google_event_id)"
+            :styles="eventItemStyles"
+            :checkbox-styles="checkboxStyles"
+            :badge-colors="badgeColors"
+            @toggle="toggleEventSelection(item.event.google_event_id)"
+          />
+        </template>
 
         <!-- Mensagem se filtro não retornar resultados -->
         <div v-if="filteredEvents.length === 0 && events.length > 0" class="no-results" :style="mutedTextStyle">
@@ -93,9 +108,9 @@
 
       <!-- Paginação -->
       <Pagination
-        v-if="totalPages > 1"
+        v-if="totalPagesGrouped > 1"
         :current-page="currentPage"
-        :total-pages="totalPages"
+        :total-pages="totalPagesGrouped"
         :styles="paginationStyles"
         @update:current-page="currentPage = $event"
       />
@@ -178,6 +193,7 @@ import { ref, computed, watch } from 'vue';
 import PeriodSelector from './components/PeriodSelector.vue';
 import EventFilters from './components/EventFilters.vue';
 import EventItem from './components/EventItem.vue';
+import EventGroup from './components/EventGroup.vue';
 import Pagination from './components/Pagination.vue';
 
 export default {
@@ -186,6 +202,7 @@ export default {
     PeriodSelector,
     EventFilters,
     EventItem,
+    EventGroup,
     Pagination
   },
   props: {
@@ -487,6 +504,60 @@ export default {
       return Array.from(types);
     });
 
+    // Agrupar eventos recorrentes (mesmo título)
+    const groupedEvents = computed(() => {
+      const groups = {};
+      const singles = [];
+
+      // Agrupar por título
+      filteredEvents.value.forEach(event => {
+        const title = event.titulo || 'Sem título';
+        if (!groups[title]) {
+          groups[title] = [];
+        }
+        groups[title].push(event);
+      });
+
+      // Separar grupos (2+ eventos) de eventos únicos
+      const result = [];
+      Object.keys(groups).forEach(title => {
+        if (groups[title].length > 1) {
+          // Ordenar eventos do grupo por data
+          groups[title].sort((a, b) => new Date(a.data_inicio) - new Date(b.data_inicio));
+          result.push({
+            type: 'group',
+            title: title,
+            events: groups[title],
+            firstDate: groups[title][0].data_inicio
+          });
+        } else {
+          result.push({
+            type: 'single',
+            event: groups[title][0],
+            firstDate: groups[title][0].data_inicio
+          });
+        }
+      });
+
+      // Ordenar tudo por data do primeiro evento
+      result.sort((a, b) => new Date(a.firstDate) - new Date(b.firstDate));
+
+      return result;
+    });
+
+    // Paginação baseada em grupos
+    const totalGroupedItems = computed(() => groupedEvents.value.length);
+
+    const totalPagesGrouped = computed(() =>
+      Math.ceil(totalGroupedItems.value / eventsPerPage.value)
+    );
+
+    const paginatedGroupedEvents = computed(() => {
+      const start = (currentPage.value - 1) * eventsPerPage.value;
+      const end = start + eventsPerPage.value;
+      return groupedEvents.value.slice(start, end);
+    });
+
     // ===== Métodos =====
     const fetchEvents = async () => {
       if (isEditing.value) return;
@@ -603,6 +674,19 @@ export default {
       }
     };
 
+    const toggleGroupSelection = ({ ids, select }) => {
+      if (isEditing.value) return;
+
+      if (select) {
+        // Adicionar todos os IDs que não estão selecionados
+        const newIds = [...new Set([...selectedEventIds.value, ...ids])];
+        selectedEventIds.value = newIds;
+      } else {
+        // Remover todos os IDs do grupo
+        selectedEventIds.value = selectedEventIds.value.filter(id => !ids.includes(id));
+      }
+    };
+
     const toggleAllFiltered = () => {
       if (isEditing.value) return;
 
@@ -684,6 +768,9 @@ export default {
       someFilteredSelected,
       canFetch,
       availableEventTypes,
+      groupedEvents,
+      paginatedGroupedEvents,
+      totalPagesGrouped,
 
       // Textos
       titleStep1,
@@ -730,6 +817,7 @@ export default {
       fetchEvents,
       importEvents,
       toggleEventSelection,
+      toggleGroupSelection,
       toggleAllFiltered,
       goBack,
       handleClose,
