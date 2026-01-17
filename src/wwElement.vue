@@ -507,34 +507,55 @@ export default {
     // Agrupar eventos recorrentes (mesmo título)
     const groupedEvents = computed(() => {
       const groups = {};
-      const singles = [];
 
-      // Agrupar por título
+      // Agrupar por título normalizado
       filteredEvents.value.forEach(event => {
-        const title = event.titulo || 'Sem título';
-        if (!groups[title]) {
-          groups[title] = [];
+        const originalTitle = event.titulo || 'Sem título';
+        // Normalizar: remover espaços extras, converter para minúsculas
+        const normalizedKey = originalTitle.trim().toLowerCase().replace(/\s+/g, ' ');
+
+        if (!groups[normalizedKey]) {
+          groups[normalizedKey] = {
+            displayTitle: originalTitle, // Manter o título original para exibição
+            events: []
+          };
         }
-        groups[title].push(event);
+        groups[normalizedKey].events.push(event);
       });
+
+      // Debug: Log de agrupamento
+      if (filteredEvents.value.length > 0) {
+        const groupCount = Object.keys(groups).length;
+        const multiEventGroups = Object.values(groups).filter(g => g.events.length > 1);
+        console.log('[ImportGoogleCalendar] Agrupamento:', {
+          totalEvents: filteredEvents.value.length,
+          totalGroups: groupCount,
+          multiEventGroups: multiEventGroups.length,
+          groups: Object.entries(groups).map(([key, group]) => ({
+            key,
+            displayTitle: group.displayTitle,
+            count: group.events.length
+          }))
+        });
+      }
 
       // Separar grupos (2+ eventos) de eventos únicos
       const result = [];
-      Object.keys(groups).forEach(title => {
-        if (groups[title].length > 1) {
+      Object.values(groups).forEach(group => {
+        if (group.events.length > 1) {
           // Ordenar eventos do grupo por data
-          groups[title].sort((a, b) => new Date(a.data_inicio) - new Date(b.data_inicio));
+          group.events.sort((a, b) => new Date(a.data_inicio) - new Date(b.data_inicio));
           result.push({
             type: 'group',
-            title: title,
-            events: groups[title],
-            firstDate: groups[title][0].data_inicio
+            title: group.displayTitle,
+            events: group.events,
+            firstDate: group.events[0].data_inicio
           });
         } else {
           result.push({
             type: 'single',
-            event: groups[title][0],
-            firstDate: groups[title][0].data_inicio
+            event: group.events[0],
+            firstDate: group.events[0].data_inicio
           });
         }
       });
