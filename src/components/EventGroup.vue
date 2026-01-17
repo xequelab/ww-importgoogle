@@ -1,5 +1,5 @@
 <template>
-  <div class="event-group" :style="groupStyle">
+  <div class="event-group" :style="groupStyle" data-component="EventGroup">
     <!-- Header do grupo (clicável para expandir/colapsar) -->
     <div class="group-header" :style="headerStyle" @click="toggleExpanded">
       <div class="group-checkbox" :style="checkboxContainerStyle" @click.stop>
@@ -121,6 +121,11 @@ export default {
   },
   emits: ['toggle', 'toggle-group'],
   setup(props, { emit }) {
+    console.log('[EventGroup] Montando componente com:', {
+      title: props.groupTitle,
+      eventCount: props.events.length
+    });
+
     const isExpanded = ref(false);
 
     const eventTypeLabels = {
