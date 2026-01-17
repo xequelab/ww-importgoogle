@@ -2,13 +2,14 @@
   <div class="event-group-wrapper">
     <!-- Header clicável -->
     <div class="event-group-header" @click="toggleExpanded">
-      <input
-        type="checkbox"
-        :checked="allSelected"
-        :indeterminate.prop="someSelected"
-        @click.stop
-        @change="handleToggleAll"
-      />
+      <div class="checkbox-wrapper" @click.stop>
+        <input
+          type="checkbox"
+          :checked="allSelected"
+          :indeterminate.prop="someSelected"
+          @change="handleToggleAll"
+        />
+      </div>
 
       <div class="event-group-info">
         <strong>{{ groupTitle }}</strong>
@@ -36,12 +37,13 @@
         class="event-group-item"
         @click="handleToggleEvent(event.google_event_id)"
       >
-        <input
-          type="checkbox"
-          :checked="selectedIds.includes(event.google_event_id)"
-          @click.stop
-          @change="handleToggleEvent(event.google_event_id)"
-        />
+        <div class="checkbox-wrapper" @click.stop>
+          <input
+            type="checkbox"
+            :checked="selectedIds.includes(event.google_event_id)"
+            @change="handleToggleEvent(event.google_event_id)"
+          />
+        </div>
 
         <div class="event-item-info">
           <span class="event-date">{{ formatDate(event.data_inicio) }}</span>
@@ -157,7 +159,13 @@ export default {
   background: #F7FAFC;
 }
 
-.event-group-header input[type="checkbox"] {
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -220,11 +228,6 @@ export default {
   background: #EDF2F7;
 }
 
-.event-group-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
 
 .event-item-info {
   flex: 1;
