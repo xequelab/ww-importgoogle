@@ -44,8 +44,13 @@
       </div>
     </div>
 
+    <!-- Debug isExpanded -->
+    <div style="background: orange; padding: 5px; font-size: 11px;">
+      DEBUG: isExpanded = {{ isExpanded }}
+    </div>
+
     <!-- Lista de eventos individuais (expandida) -->
-    <div v-if="isExpanded" class="group-events">
+    <div v-if="isExpanded" class="group-events" style="background: pink !important; border: 2px solid purple !important;">
       <div
         v-for="event in events"
         :key="event.google_event_id"
@@ -173,6 +178,7 @@ export default {
 
     const toggleExpanded = () => {
       isExpanded.value = !isExpanded.value;
+      console.log('[EventGroup] toggleExpanded chamado. isExpanded agora é:', isExpanded.value);
     };
 
     const toggleAll = () => {
