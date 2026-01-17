@@ -121,10 +121,11 @@ export default {
   },
   emits: ['toggle', 'toggle-group'],
   setup(props, { emit }) {
-    console.log('[EventGroup] Montando componente com:', {
-      title: props.groupTitle,
-      eventCount: props.events.length
-    });
+    console.log('[EventGroup] Montando componente');
+    console.log('[EventGroup] Props recebidas:', props);
+    console.log('[EventGroup] groupTitle:', props.groupTitle);
+    console.log('[EventGroup] events:', props.events);
+    console.log('[EventGroup] events.length:', props.events?.length);
 
     const isExpanded = ref(false);
 
