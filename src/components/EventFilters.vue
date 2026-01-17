@@ -27,20 +27,17 @@
         </button>
       </div>
 
-      <!-- Filtro por tipo -->
-      <div class="select-wrapper">
+      <!-- Filtro por tipo (apenas tipos que existem nos eventos) -->
+      <div v-if="availableEventTypes.length > 1" class="select-wrapper">
         <select
           :value="filterEventType"
           :style="selectStyle"
           @change="$emit('update:filter-event-type', $event.target.value)"
         >
           <option value="all">{{ labelFilterType }}: Todos</option>
-          <option value="default">Padrão</option>
-          <option value="birthday">Aniversário</option>
-          <option value="focusTime">Tempo de foco</option>
-          <option value="outOfOffice">Fora do escritório</option>
-          <option value="workingLocation">Local de trabalho</option>
-          <option value="fromGmail">Do Gmail</option>
+          <option v-for="type in availableEventTypes" :key="type" :value="type">
+            {{ eventTypeLabels[type] || type }}
+          </option>
         </select>
         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6 9 12 15 18 9"></polyline>
@@ -100,6 +97,10 @@ export default {
       type: Boolean,
       default: false
     },
+    availableEventTypes: {
+      type: Array,
+      default: () => []
+    },
     labelSearch: {
       type: String,
       default: 'Buscar por título...'
@@ -123,6 +124,16 @@ export default {
   },
   emits: ['update:search-query', 'update:filter-event-type', 'toggle-all'],
   setup(props) {
+    // Labels para os tipos de evento
+    const eventTypeLabels = {
+      default: 'Padrão',
+      birthday: 'Aniversário',
+      focusTime: 'Tempo de foco',
+      outOfOffice: 'Fora do escritório',
+      workingLocation: 'Local de trabalho',
+      fromGmail: 'Do Gmail'
+    };
+
     const searchInputStyle = computed(() => ({
       padding: props.styles.padding || '10px 14px',
       paddingLeft: '40px',
@@ -167,6 +178,7 @@ export default {
     }));
 
     return {
+      eventTypeLabels,
       searchInputStyle,
       selectStyle,
       clearButtonStyle,
@@ -182,7 +194,7 @@ export default {
 .event-filters {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .filters-row {
@@ -286,6 +298,10 @@ export default {
 .select-all-row {
   display: flex;
   align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-color, #E2E8F0);
+  border-bottom: 1px solid var(--border-color, #E2E8F0);
+  margin: 4px 0;
 }
 
 .checkbox-label {

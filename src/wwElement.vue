@@ -50,6 +50,7 @@
         :filter-event-type="filterEventType"
         :all-selected="allFilteredSelected"
         :some-selected="someFilteredSelected"
+        :available-event-types="availableEventTypes"
         :label-search="labelSearch"
         :label-select-all="labelSelectAll"
         :label-filter-type="labelFilterType"
@@ -475,6 +476,17 @@ export default {
       return timeMin.value && timeMax.value && timeMin.value <= timeMax.value;
     });
 
+    // Tipos de eventos disponíveis (apenas os que têm pelo menos 1 evento)
+    const availableEventTypes = computed(() => {
+      const types = new Set();
+      events.value.forEach(event => {
+        if (event.event_type) {
+          types.add(event.event_type);
+        }
+      });
+      return Array.from(types);
+    });
+
     // ===== Métodos =====
     const fetchEvents = async () => {
       if (isEditing.value) return;
@@ -671,6 +683,7 @@ export default {
       allFilteredSelected,
       someFilteredSelected,
       canFetch,
+      availableEventTypes,
 
       // Textos
       titleStep1,
