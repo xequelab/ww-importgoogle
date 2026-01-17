@@ -64,11 +64,6 @@
       <!-- Lista de eventos (agrupados) -->
       <div v-if="events.length > 0" class="events-list" :style="eventsListStyle">
         <template v-for="item in paginatedGroupedEvents" :key="item.type === 'group' ? `group-${item.title}` : item.event.google_event_id">
-          <!-- Debug visual -->
-          <div v-if="item.type === 'group'" style="background: yellow; padding: 4px; margin: 2px 0; font-size: 10px; border: 2px solid red;">
-            DEBUG: Tentando renderizar grupo "{{ item.title }}" com {{ item.events.length }} eventos
-          </div>
-
           <!-- Grupo de eventos recorrentes -->
           <EventGroup
             v-if="item.type === 'group'"
