@@ -1,26 +1,27 @@
 <template>
   <div class="event-group-wrapper">
-    <!-- Header clicável -->
+    <!-- Header -->
     <div class="event-group-header">
-      <div class="checkbox-wrapper" @click="handleToggleAll">
+      <!-- Checkbox do grupo -->
+      <label class="checkbox-label" @click.stop>
         <input
           type="checkbox"
           :checked="allSelected"
           :indeterminate.prop="someSelected"
-          @click.prevent
+          @change="onGroupCheckboxChange"
         />
-      </div>
+      </label>
 
-      <div class="event-group-title-area" @click="toggleExpanded">
-        <div class="event-group-info">
+      <!-- Área clicável para expandir -->
+      <div class="group-info-area" @click="isExpanded = !isExpanded">
+        <div class="group-text">
           <strong>{{ groupTitle }}</strong>
-          <span class="event-count">({{ events.length }} ocorrências)</span>
-          <span class="event-dates">{{ dateRange }}</span>
+          <span class="group-meta">({{ events.length }} ocorrências) • {{ dateRange }}</span>
         </div>
 
         <svg
-          class="expand-arrow"
-          :class="{ rotated: isExpanded }"
+          class="expand-icon"
+          :class="{ expanded: isExpanded }"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -31,23 +32,25 @@
       </div>
     </div>
 
-    <!-- Lista expandida -->
-    <div v-show="isExpanded" class="event-group-list">
+    <!-- Lista de eventos expandida -->
+    <div v-if="isExpanded" class="event-list">
       <div
         v-for="event in events"
         :key="event.google_event_id"
-        class="event-group-item"
+        class="event-item"
       >
-        <div class="checkbox-wrapper" @click="handleToggleEvent(event.google_event_id)">
+        <!-- Checkbox do evento -->
+        <label class="checkbox-label" @click.stop>
           <input
             type="checkbox"
             :checked="selectedIds.includes(event.google_event_id)"
-            @click.prevent
+            @change="onEventCheckboxChange(event.google_event_id)"
           />
-        </div>
+        </label>
 
-        <div class="event-item-info" @click="handleToggleEvent(event.google_event_id)">
-          <span class="event-date">{{ formatDate(event.data_inicio) }}</span>
+        <!-- Info do evento (clicável) -->
+        <div class="event-details" @click="toggleEvent(event.google_event_id)">
+          <span class="event-time">{{ formatDate(event.data_inicio) }}</span>
           <span v-if="event.duracao_real_minutos" class="event-duration">
             ({{ formatDuration(event.duracao_real_minutos) }})
           </span>
@@ -63,47 +66,44 @@ import { ref, computed } from 'vue';
 export default {
   name: 'EventGroup',
   props: {
-    groupTitle: String,
-    events: Array,
-    selectedIds: Array
+    groupTitle: { type: String, required: true },
+    events: { type: Array, required: true },
+    selectedIds: { type: Array, default: () => [] }
   },
   emits: ['toggle', 'toggle-group'],
   setup(props, { emit }) {
     const isExpanded = ref(false);
 
     const allSelected = computed(() => {
+      if (props.events.length === 0) return false;
       return props.events.every(e => props.selectedIds.includes(e.google_event_id));
     });
 
     const someSelected = computed(() => {
-      const count = props.events.filter(e => props.selectedIds.includes(e.google_event_id)).length;
-      return count > 0 && count < props.events.length;
+      const selected = props.events.filter(e => props.selectedIds.includes(e.google_event_id));
+      return selected.length > 0 && selected.length < props.events.length;
     });
 
     const dateRange = computed(() => {
-      if (!props.events.length) return '';
-
+      if (props.events.length === 0) return '';
       const dates = props.events.map(e => new Date(e.data_inicio)).sort((a, b) => a - b);
       const first = dates[0];
       const last = dates[dates.length - 1];
-
-      const format = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-
-      return first.getTime() === last.getTime()
-        ? format(first)
-        : `${format(first)} - ${format(last)}`;
+      const fmt = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      return first.getTime() === last.getTime() ? fmt(first) : `${fmt(first)} - ${fmt(last)}`;
     });
 
-    const toggleExpanded = () => {
-      isExpanded.value = !isExpanded.value;
+    const onGroupCheckboxChange = (e) => {
+      const shouldSelect = e.target.checked;
+      const eventIds = props.events.map(ev => ev.google_event_id);
+      emit('toggle-group', { ids: eventIds, select: shouldSelect });
     };
 
-    const handleToggleAll = () => {
-      const eventIds = props.events.map(e => e.google_event_id);
-      emit('toggle-group', { ids: eventIds, select: !allSelected.value });
+    const onEventCheckboxChange = (eventId) => {
+      emit('toggle', eventId);
     };
 
-    const handleToggleEvent = (eventId) => {
+    const toggleEvent = (eventId) => {
       emit('toggle', eventId);
     };
 
@@ -120,8 +120,8 @@ export default {
     const formatDuration = (minutes) => {
       if (minutes < 60) return `${minutes}min`;
       const hours = Math.floor(minutes / 60);
-      const remaining = minutes % 60;
-      return remaining === 0 ? `${hours}h` : `${hours}h${remaining}min`;
+      const mins = minutes % 60;
+      return mins === 0 ? `${hours}h` : `${hours}h${mins}min`;
     };
 
     return {
@@ -129,9 +129,9 @@ export default {
       allSelected,
       someSelected,
       dateRange,
-      toggleExpanded,
-      handleToggleAll,
-      handleToggleEvent,
+      onGroupCheckboxChange,
+      onEventCheckboxChange,
+      toggleEvent,
       formatDate,
       formatDuration
     };
@@ -143,8 +143,8 @@ export default {
 .event-group-wrapper {
   border: 1px solid #E2E8F0;
   border-radius: 8px;
-  margin-bottom: 8px;
   background: white;
+  margin-bottom: 8px;
 }
 
 .event-group-header {
@@ -152,57 +152,56 @@ export default {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  user-select: none;
 }
 
-.event-group-title-area {
-  flex: 1;
+.checkbox-label {
   display: flex;
   align-items: center;
-  gap: 12px;
   cursor: pointer;
+  margin: 0;
 }
 
-.event-group-title-area:hover {
-  opacity: 0.8;
-}
-
-.checkbox-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.checkbox-wrapper input[type="checkbox"] {
+.checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
+  margin: 0;
 }
 
-.event-group-info {
+.group-info-area {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  min-width: 0;
 }
 
-.event-group-info strong {
+.group-info-area:hover {
+  opacity: 0.7;
+}
+
+.group-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-text strong {
+  display: block;
   font-size: 14px;
+  font-weight: 600;
   color: #1A202C;
+  margin-bottom: 2px;
 }
 
-.event-count {
-  font-size: 12px;
-  color: #718096;
-  margin-left: 8px;
-}
-
-.event-dates {
+.group-meta {
+  display: block;
   font-size: 12px;
   color: #718096;
 }
 
-.expand-arrow {
+.expand-icon {
   width: 20px;
   height: 20px;
   color: #718096;
@@ -210,16 +209,16 @@ export default {
   flex-shrink: 0;
 }
 
-.expand-arrow.rotated {
+.expand-icon.expanded {
   transform: rotate(180deg);
 }
 
-.event-group-list {
+.event-list {
   border-top: 1px solid #E2E8F0;
   background: #F7FAFC;
 }
 
-.event-group-item {
+.event-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -227,28 +226,27 @@ export default {
   border-bottom: 1px solid #E2E8F0;
 }
 
-.event-group-item:last-child {
+.event-item:last-child {
   border-bottom: none;
 }
 
-.event-group-item:hover {
+.event-item:hover {
   background: #EDF2F7;
 }
 
-
-.event-item-info {
+.event-details {
   flex: 1;
   font-size: 13px;
   color: #4A5568;
   cursor: pointer;
 }
 
-.event-date {
+.event-time {
   font-weight: 500;
 }
 
 .event-duration {
   color: #718096;
-  margin-left: 8px;
+  margin-left: 6px;
 }
 </style>
