@@ -72,7 +72,7 @@
     </div>
 
     <!-- Seção de Webhook (Layout Horizontal) -->
-    <div v-if="hasActiveCalendar && webhookStatus" class="webhook-section-horizontal" :style="webhookSectionStyle">
+    <div v-if="hasActiveCalendar && normalizedWebhook" class="webhook-section-horizontal" :style="webhookSectionStyle">
       <div class="webhook-left">
         <div class="webhook-icon-small">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -82,8 +82,8 @@
         </div>
         <div class="webhook-info">
           <span class="webhook-title-small">{{ webhookSectionTitle }}</span>
-          <span class="webhook-status-badge" :style="getWebhookStatusStyle(webhookStatus.status)">
-            {{ getWebhookStatusText(webhookStatus.status) }}
+          <span class="webhook-status-badge" :style="getWebhookStatusStyle()">
+            {{ getWebhookStatusText() }}
           </span>
         </div>
       </div>
@@ -91,10 +91,10 @@
       <div class="webhook-right">
         <button
           class="btn-small"
-          :style="getWebhookButtonStyle(webhookStatus.status)"
+          :style="getWebhookButtonStyle()"
           @click="handleWebhookToggle"
         >
-          {{ getWebhookButtonText(webhookStatus.status) }}
+          {{ getWebhookButtonText() }}
         </button>
       </div>
     </div>
@@ -215,9 +215,22 @@ export default {
       return calendar.recebe_agendamentos === true;
     };
 
+    // Helper para normalizar o status (pode vir como objeto ou array)
+    const normalizedWebhook = computed(() => {
+      const data = props.webhookStatus;
+      if (Array.isArray(data)) {
+        return data.length > 0 ? data[0] : null;
+      }
+      return data;
+    });
+
     // Badge "Sincronizado" só aparece para o que está REALMENTE no banco E tem webhook ativo
     const isCalendarSynced = (calendar) => {
-      return calendar.recebe_agendamentos === true && props.webhookStatus?.status === 'active';
+      const wb = normalizedWebhook.value;
+      if (!wb) return false;
+      const status = wb.status || wb.renewal_status;
+      
+      return calendar.recebe_agendamentos === true && status === 'active';
     };
 
     const handleCalendarClick = (calendar) => {
