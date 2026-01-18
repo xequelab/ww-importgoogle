@@ -120,6 +120,17 @@
       >
         {{ fetchButtonText }}
       </button>
+
+      <!-- Botão de Reativação (Caso esteja ativo no banco mas sem webhook) -->
+      <button
+        v-else-if="hasActiveCalendar && temporarySelectedId !== null && calendars.find(c => c.id === temporarySelectedId)?.recebe_agendamentos && !isCalendarSynced(calendars.find(c => c.id === temporarySelectedId))"
+        class="btn btn-primary"
+        :style="Object.assign({}, primaryButtonStyle, { backgroundColor: '#F59E0B', borderColor: '#F59E0B', color: 'white' })"
+        @click="handleConfirmSelection"
+        :disabled="isChanging"
+      >
+        Reativar Sincronização
+      </button>
     </div>
     <!-- Modal de Confirmação -->
     <div v-if="showConfirmModal" class="modal-overlay">
