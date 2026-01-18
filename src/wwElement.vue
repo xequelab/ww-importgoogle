@@ -631,7 +631,8 @@ export default {
 
     // ===== Status de Webhook e Conexão =====
     const isWebhookActive = computed(() => {
-      return webhookStatus.value && webhookStatus.value.status === 'active';
+      const status = webhookStatus.value?.status || webhookStatus.value?.renewal_status;
+      return status === 'active';
     });
 
     const isFullyConnected = computed(() => {
