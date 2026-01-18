@@ -374,6 +374,14 @@ export default {
     const renewTokenEndpoint = computed(() => props.content?.renewTokenEndpoint || '');
 
     const isAuthenticated = computed(() => {
+      console.log('🔍 Checking authentication:', {
+        hasTokens: !!userTokens.value,
+        status: userTokens.value?.status,
+        hasAccessToken: !!userTokens.value?.access_token,
+        isExpired: isTokenExpired.value,
+        expiresAt: userTokens.value?.expires_at
+      });
+
       if (!userTokens.value) return false;
       if (userTokens.value.status !== 'active') return false;
       if (!userTokens.value.access_token) return false;
