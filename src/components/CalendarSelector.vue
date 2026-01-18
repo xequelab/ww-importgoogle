@@ -128,6 +128,9 @@
         <p :style="modalTextStyle">
           Ao confirmar, habilitaremos a atualização automática em tempo real. Seus eventos serão mantidos sempre atualizados entre as duas plataformas.
         </p>
+        <p :style="modalTextStyle" style="margin-top: 12px; font-weight: 500; color: #C53030;">
+          Atenção: Apenas uma agenda pode ficar sincronizada por vez. A sincronização de uma desativa a outra.
+        </p>
         <div class="modal-actions">
           <button class="btn btn-secondary" :style="secondaryButtonStyle" @click="showConfirmModal = false">
             Cancelar
