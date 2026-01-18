@@ -56,6 +56,24 @@ export default {
     }
   ],
   properties: {
+    // ===== DADOS =====
+    existingAppointments: {
+      label: { en: 'Existing Appointments', pt: 'Agendamentos Existentes' },
+      type: 'Object',
+      section: 'settings',
+      bindable: true,
+      defaultValue: null,
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'array',
+        tooltip: 'Coleção de agendamentos já importados (para evitar reimportação)'
+      },
+      propertyHelp: {
+        tooltip: 'Bind a coleção de agendamentos para identificar quais eventos já foram importados. O componente irá desabilitar eventos que já possuem google_event_id.'
+      }
+      /* wwEditor:end */
+    },
+
     // ===== CONFIGURAÇÃO =====
     calendarId: {
       label: { en: 'Calendar ID', pt: 'ID do Calendário' },

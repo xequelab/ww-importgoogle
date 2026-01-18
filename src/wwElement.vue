@@ -206,10 +206,6 @@ export default {
     Pagination
   },
   props: {
-    existingAppointments: {
-      type: Array,
-      default: () => []
-    },
     content: {
       type: Object,
       required: true
@@ -229,11 +225,26 @@ export default {
   setup(props, { emit }) {
     // ===== IDs de eventos já importados =====
     const importedGoogleIds = computed(() => {
-      if (!Array.isArray(props.existingAppointments)) return new Set();
-      const ids = props.existingAppointments
-        .map(item => item?.google_event_id)
-        .filter(Boolean);
-      return new Set(ids);
+      const appointments = props.content?.existingAppointments;
+
+      // Handle WeWeb collection object
+      if (appointments && appointments.data && Array.isArray(appointments.data)) {
+        const ids = appointments.data
+          .filter(item => item != null)
+          .map(item => item?.google_event_id)
+          .filter(Boolean);
+        return new Set(ids);
+      }
+
+      // Handle direct array binding
+      if (Array.isArray(appointments)) {
+        const ids = appointments
+          .map(item => item?.google_event_id)
+          .filter(Boolean);
+        return new Set(ids);
+      }
+
+      return new Set();
     });
 
     // ===== Estado do editor =====
