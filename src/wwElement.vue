@@ -675,11 +675,18 @@ export default {
       isRenewingToken.value = true;
 
       try {
+        // Prepara o header de autorização
+        const authHeader = authToken.value
+          ? (authToken.value.startsWith('Bearer ')
+              ? authToken.value
+              : `Bearer ${authToken.value}`)
+          : null;
+
         const response = await fetch(renewTokenEndpoint.value, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(authToken.value ? { 'Authorization': `Bearer ${authToken.value}` } : {})
+            ...(authHeader ? { 'Authorization': authHeader } : {})
           }
         });
 
