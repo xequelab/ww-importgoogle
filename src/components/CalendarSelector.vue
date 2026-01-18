@@ -447,13 +447,7 @@ export default {
       primaryButtonStyle,
       secondaryButtonStyle,
       actionsStyle,
-      webhookSectionStyle,
-      webhookHeaderStyle,
-      webhookIconStyle,
-      webhookTitleStyle,
-      webhookStatusStyle,
-      webhookUrlStyle,
-      webhookActionsStyle
+      webhookSectionStyle
     };
   }
 };
