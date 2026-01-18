@@ -1456,9 +1456,6 @@ export default {
     const handleCalendarSelected = (calendar) => {
       if (isEditing.value) return;
 
-      // Limpa temporário pois agora vai confirmar
-      temporarySelectedCalendar.value = null;
-
       const calendarId = calendar?.calendar_id;
       
       console.log('📅 Calendário selecionado:', { 
@@ -1467,6 +1464,8 @@ export default {
         calendar 
       });
 
+      // IMPORTANTE: Emitir evento ANTES de limpar temporário
+      // para evitar race condition com o watch
       emit('trigger-event', {
         name: 'calendar-selected',
         event: { 
@@ -1475,6 +1474,9 @@ export default {
           calendarName: calendar?.summary_override || calendar?.calendar_summary
         }
       });
+
+      // Limpa temporário DEPOIS de emitir o evento
+      temporarySelectedCalendar.value = null;
     };
 
     const handleFetchCalendars = async () => {
