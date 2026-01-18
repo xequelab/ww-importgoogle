@@ -121,6 +121,23 @@
         {{ fetchButtonText }}
       </button>
     </div>
+    <!-- Modal de Confirmação -->
+    <div v-if="showConfirmModal" class="modal-overlay">
+      <div class="modal-content" :style="modalStyle">
+        <h3 :style="modalTitleStyle">Confirmar Sincronização</h3>
+        <p :style="modalTextStyle">
+          Ao confirmar, habilitaremos a atualização automática em tempo real. Seus eventos serão mantidos sempre atualizados entre as duas plataformas.
+        </p>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" :style="secondaryButtonStyle" @click="showConfirmModal = false">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" :style="primaryButtonStyle" @click="finalizeSelection">
+            Confirmar e Ativar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -239,16 +256,20 @@ export default {
       emit('calendar-preselected', calendar);
     };
 
+    const showConfirmModal = ref(false);
+
     const handleConfirmSelection = () => {
       if (isChanging.value) return;
       if (temporarySelectedId.value === null) return;
+      showConfirmModal.value = true;
+    };
 
-      // Encontra o calendário selecionado
+    const finalizeSelection = () => {
       const selectedCalendar = props.calendars.find(cal => cal.id === temporarySelectedId.value);
       if (!selectedCalendar) return;
 
-      // Agora sim, emite o evento de seleção confirmada
       isChanging.value = true;
+      showConfirmModal.value = false;
       emit('calendar-selected', selectedCalendar);
     };
 
@@ -413,6 +434,24 @@ export default {
 
 
 
+    // Estilos do Modal
+    const modalStyle = computed(() => ({
+      fontFamily: props.styles.fontFamily || 'inherit'
+    }));
+
+    const modalTitleStyle = computed(() => ({
+      fontSize: '18px',
+      fontWeight: '600',
+      color: props.styles.textColor || '#1A202C',
+      marginBottom: '12px'
+    }));
+
+    const modalTextStyle = computed(() => ({
+      fontSize: '14px',
+      color: props.styles.textMutedColor || '#4A5568',
+      lineHeight: '1.6'
+    }));
+
     return {
       isLoading,
       isChanging,
@@ -438,13 +477,49 @@ export default {
       primaryButtonStyle,
       secondaryButtonStyle,
       actionsStyle,
-      webhookSectionStyle
+      webhookSectionStyle,
+      showConfirmModal,
+      finalizeSelection,
+      modalStyle,
+      modalTitleStyle,
+      modalTextStyle
     };
   }
 };
 </script>
 
 <style scoped>
+/* ... existing styles ... */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+/* ... rest of styles ... */
 .calendar-selector {
   box-sizing: border-box;
 }
