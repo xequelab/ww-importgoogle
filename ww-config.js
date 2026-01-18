@@ -79,6 +79,12 @@ export default {
         error: ''
       },
       default: false
+    },
+    {
+      name: 'webhook-toggle',
+      label: { en: 'On webhook toggle', pt: 'Ao alternar webhook' },
+      event: {},
+      default: false
     }
   ],
   actions: [
@@ -589,6 +595,102 @@ export default {
       options: {
         placeholder: 'Continuar'
       }
+    },
+    buttonConfirmCalendar: {
+      label: { en: 'Button - Confirm Calendar', pt: 'Botão - Confirmar Calendário' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Confirmar Seleção',
+      options: {
+        placeholder: 'Confirmar Seleção'
+      }
+    },
+
+    // ===== TEXTOS - ABAS =====
+    tabLabelAuth: {
+      label: { en: 'Tab Label - Auth', pt: 'Label Aba - Conexão' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Conexão',
+      options: {
+        placeholder: 'Conexão'
+      }
+    },
+    tabLabelCalendar: {
+      label: { en: 'Tab Label - Calendar', pt: 'Label Aba - Calendário' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Calendário',
+      options: {
+        placeholder: 'Calendário'
+      }
+    },
+    tabLabelImport: {
+      label: { en: 'Tab Label - Import', pt: 'Label Aba - Importar' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Importar',
+      options: {
+        placeholder: 'Importar'
+      }
+    },
+
+    // ===== TEXTOS - WEBHOOK =====
+    labelWebhookTitle: {
+      label: { en: 'Webhook - Section Title', pt: 'Webhook - Título da Seção' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Sincronização Automática',
+      options: {
+        placeholder: 'Sincronização Automática'
+      }
+    },
+    buttonWebhookPause: {
+      label: { en: 'Webhook - Button Pause', pt: 'Webhook - Botão Pausar' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Pausar Sincronização',
+      options: {
+        placeholder: 'Pausar Sincronização'
+      }
+    },
+    buttonWebhookActivate: {
+      label: { en: 'Webhook - Button Activate', pt: 'Webhook - Botão Ativar' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Ativar Sincronização',
+      options: {
+        placeholder: 'Ativar Sincronização'
+      }
+    },
+    buttonWebhookRetry: {
+      label: { en: 'Webhook - Button Retry', pt: 'Webhook - Botão Reativar' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Reativar Webhook',
+      options: {
+        placeholder: 'Reativar Webhook'
+      }
+    },
+    webhookStatus: {
+      label: { en: 'Webhook Status', pt: 'Status do Webhook' },
+      type: 'Object',
+      section: 'settings',
+      bindable: true,
+      defaultValue: null,
+      /* wwEditor:start */
+      propertyHelp: {
+        tooltip: 'Objeto com { status: "active"|"inactive"|"error", url: "", lastSync: "", message: "" }'
+      }
+      /* wwEditor:end */
     },
 
     // ===== CORES PRINCIPAIS =====

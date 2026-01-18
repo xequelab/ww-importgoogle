@@ -71,10 +71,65 @@
       </button>
     </div>
 
+    <!-- Seção de Webhook (só aparece quando há calendário ativo) -->
+    <div v-if="hasActiveCalendar && webhookStatus" class="webhook-section" :style="webhookSectionStyle">
+      <div class="webhook-header">
+        <div class="webhook-icon" :style="webhookIconStyle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <h3 class="webhook-title" :style="webhookTitleStyle">{{ webhookSectionTitle }}</h3>
+      </div>
+
+      <div class="webhook-status" :style="webhookStatusStyle">
+        <div class="status-row">
+          <span :style="mutedTextStyle">Status:</span>
+          <span :style="getWebhookStatusStyle(webhookStatus.status)">
+            {{ getWebhookStatusText(webhookStatus.status) }}
+          </span>
+        </div>
+
+        <div v-if="webhookStatus.url" class="status-row">
+          <span :style="mutedTextStyle">Webhook:</span>
+          <span :style="webhookUrlStyle">{{ webhookStatus.url }}</span>
+        </div>
+
+        <div v-if="webhookStatus.lastSync" class="status-row">
+          <span :style="mutedTextStyle">Última sincronização:</span>
+          <span>{{ webhookStatus.lastSync }}</span>
+        </div>
+
+        <div v-if="webhookStatus.message" class="status-message" :style="getWebhookMessageStyle(webhookStatus.status)">
+          {{ webhookStatus.message }}
+        </div>
+      </div>
+
+      <div class="webhook-actions" :style="webhookActionsStyle">
+        <button
+          class="btn"
+          :style="getWebhookButtonStyle(webhookStatus.status)"
+          @click="handleWebhookToggle"
+        >
+          {{ getWebhookButtonText(webhookStatus.status) }}
+        </button>
+      </div>
+    </div>
+
     <!-- Ações -->
     <div class="actions" :style="actionsStyle">
       <button
-        v-if="hasActiveCalendar"
+        v-if="temporarySelectedId !== null"
+        class="btn btn-primary"
+        :style="primaryButtonStyle"
+        @click="handleConfirmSelection"
+        :disabled="isChanging"
+      >
+        {{ confirmButtonText }}
+      </button>
+      <button
+        v-else-if="hasActiveCalendar"
         class="btn btn-primary"
         :style="primaryButtonStyle"
         @click="handleContinue"
@@ -129,12 +184,37 @@ export default {
       type: String,
       default: 'Continuar'
     },
+    confirmButtonText: {
+      type: String,
+      default: 'Confirmar Seleção'
+    },
+    webhookStatus: {
+      type: Object,
+      default: () => null
+      // { status: 'active'|'inactive'|'error', url: '', lastSync: '', message: '' }
+    },
+    webhookSectionTitle: {
+      type: String,
+      default: 'Sincronização Automática'
+    },
+    webhookButtonActive: {
+      type: String,
+      default: 'Pausar Sincronização'
+    },
+    webhookButtonInactive: {
+      type: String,
+      default: 'Ativar Sincronização'
+    },
+    webhookButtonRetry: {
+      type: String,
+      default: 'Reativar Webhook'
+    },
     styles: {
       type: Object,
       default: () => ({})
     }
   },
-  emits: ['calendar-selected', 'fetch-calendars', 'continue'],
+  emits: ['calendar-selected', 'fetch-calendars', 'continue', 'webhook-toggle'],
   setup(props, { emit }) {
     const isLoading = ref(false);
     const isChanging = ref(false);
@@ -156,10 +236,21 @@ export default {
     const handleCalendarClick = (calendar) => {
       if (isChanging.value) return;
 
-      // Marca como selecionado temporariamente
+      // Apenas marca como selecionado temporariamente (não emite evento ainda)
       temporarySelectedId.value = calendar.id;
+    };
 
-      emit('calendar-selected', calendar);
+    const handleConfirmSelection = () => {
+      if (isChanging.value) return;
+      if (temporarySelectedId.value === null) return;
+
+      // Encontra o calendário selecionado
+      const selectedCalendar = props.calendars.find(cal => cal.id === temporarySelectedId.value);
+      if (!selectedCalendar) return;
+
+      // Agora sim, emite o evento de seleção confirmada
+      isChanging.value = true;
+      emit('calendar-selected', selectedCalendar);
     };
 
     // Watch para limpar seleção temporária quando o banco atualizar
@@ -167,6 +258,7 @@ export default {
       // Se algum calendário agora tem recebe_agendamentos true, limpa a seleção temporária
       if (newCalendars.some(cal => cal.recebe_agendamentos === true)) {
         temporarySelectedId.value = null;
+        isChanging.value = false;
       }
     }, { deep: true });
 
@@ -183,6 +275,25 @@ export default {
     const handleContinue = () => {
       if (isChanging.value) return;
       emit('continue');
+    };
+
+    const handleWebhookToggle = () => {
+      emit('webhook-toggle');
+    };
+
+    const getWebhookStatusText = (status) => {
+      const statusMap = {
+        'active': '✓ Ativo',
+        'inactive': 'Inativo',
+        'error': '⚠ Erro'
+      };
+      return statusMap[status] || 'Desconhecido';
+    };
+
+    const getWebhookButtonText = (status) => {
+      if (status === 'active') return props.webhookButtonActive;
+      if (status === 'error') return props.webhookButtonRetry;
+      return props.webhookButtonInactive;
     };
 
     const containerStyle = computed(() => ({
@@ -257,14 +368,109 @@ export default {
       marginTop: '8px'
     }));
 
+    // Estilos do Webhook
+    const webhookSectionStyle = computed(() => ({
+      marginTop: props.styles.sectionGap || '20px',
+      padding: '20px',
+      backgroundColor: props.styles.surfaceColor || '#F7FAFC',
+      borderRadius: '8px',
+      border: `1px solid ${props.styles.borderColor || '#E2E8F0'}`
+    }));
+
+    const webhookHeaderStyle = computed(() => ({
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      marginBottom: '16px'
+    }));
+
+    const webhookIconStyle = computed(() => ({
+      width: '24px',
+      height: '24px',
+      color: props.styles.primaryColor || '#081B4E',
+      flexShrink: '0'
+    }));
+
+    const webhookTitleStyle = computed(() => ({
+      fontSize: '16px',
+      fontWeight: '600',
+      color: props.styles.textColor || '#1A202C',
+      margin: '0'
+    }));
+
+    const webhookStatusStyle = computed(() => ({
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      marginBottom: '16px'
+    }));
+
+    const webhookUrlStyle = computed(() => ({
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: props.styles.textMutedColor || '#718096',
+      wordBreak: 'break-all'
+    }));
+
+    const webhookActionsStyle = computed(() => ({
+      display: 'flex',
+      justifyContent: 'flex-start'
+    }));
+
+    const getWebhookStatusStyle = (status) => {
+      const colors = {
+        'active': props.styles.successColor || '#38A169',
+        'inactive': props.styles.textMutedColor || '#718096',
+        'error': props.styles.errorColor || '#E53E3E'
+      };
+      return {
+        color: colors[status] || colors.inactive,
+        fontWeight: '600'
+      };
+    };
+
+    const getWebhookMessageStyle = (status) => {
+      const colors = {
+        'error': props.styles.errorColor || '#E53E3E',
+        'active': props.styles.successColor || '#38A169'
+      };
+      return {
+        fontSize: '12px',
+        color: colors[status] || props.styles.textMutedColor || '#718096',
+        marginTop: '4px'
+      };
+    };
+
+    const getWebhookButtonStyle = (status) => {
+      const isDestructive = status === 'active';
+      return {
+        padding: '8px 16px',
+        backgroundColor: isDestructive ? '#FFFFFF' : (props.styles.primaryColor || '#081B4E'),
+        color: isDestructive ? (props.styles.errorColor || '#E53E3E') : '#FFFFFF',
+        fontSize: '14px',
+        fontWeight: '600',
+        borderRadius: '8px',
+        border: isDestructive ? `2px solid ${props.styles.errorColor || '#E53E3E'}` : 'none',
+        cursor: 'pointer'
+      };
+    };
+
     return {
       isLoading,
       isChanging,
       hasActiveCalendar,
       isCalendarActive,
+      temporarySelectedId,
       handleCalendarClick,
+      handleConfirmSelection,
       handleFetchCalendars,
       handleContinue,
+      handleWebhookToggle,
+      getWebhookStatusText,
+      getWebhookButtonText,
+      getWebhookStatusStyle,
+      getWebhookMessageStyle,
+      getWebhookButtonStyle,
       containerStyle,
       iconStyle,
       titleStyle,
@@ -273,7 +479,14 @@ export default {
       spinnerStyle,
       primaryButtonStyle,
       secondaryButtonStyle,
-      actionsStyle
+      actionsStyle,
+      webhookSectionStyle,
+      webhookHeaderStyle,
+      webhookIconStyle,
+      webhookTitleStyle,
+      webhookStatusStyle,
+      webhookUrlStyle,
+      webhookActionsStyle
     };
   }
 };
@@ -438,5 +651,125 @@ export default {
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Webhook Section */
+.webhook-section {
+  box-sizing: border-box;
+}
+
+.webhook-header {
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 12px;
+}
+
+.webhook-icon {
+  flex-shrink: 0;
+}
+
+.webhook-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.webhook-status .status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.webhook-status .status-row span:first-child {
+  flex-shrink: 0;
+}
+
+.webhook-status .status-row span:last-child {
+  text-align: right;
+  word-break: break-word;
+}
+
+.webhook-status .status-message {
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .calendars-list {
+    gap: 8px;
+  }
+
+  .calendar-item {
+    padding: 12px;
+  }
+
+  .calendar-name {
+    font-size: 13px;
+  }
+
+  .calendar-meta {
+    font-size: 11px;
+  }
+
+  .webhook-section {
+    padding: 16px;
+  }
+
+  .webhook-status .status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .webhook-status .status-row span:last-child {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .selector-header {
+    gap: 12px;
+  }
+
+  .header-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .calendar-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .calendar-radio input[type="radio"] {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sync-badge {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  .webhook-section {
+    padding: 12px;
+  }
+
+  .webhook-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .webhook-title {
+    font-size: 14px !important;
+  }
+
+  .webhook-status .status-row {
+    font-size: 13px;
+  }
 }
 </style>

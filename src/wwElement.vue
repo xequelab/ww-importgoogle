@@ -1,34 +1,77 @@
 <template>
   <div class="import-google-calendar" :style="containerStyle">
-    <!-- STEP 0: Não Autenticado -->
-    <AuthPrompt
-      v-if="step === 'not-authenticated'"
-      :auth-url="authUrl"
-      :title="titleAuth"
-      :description="descriptionAuth"
-      :button-text="buttonAuth"
-      :authenticating-text="labelAuthenticating"
-      :styles="authPromptStyles"
-      @auth-initiated="handleAuthInitiated"
+    <!-- Navegação por Abas -->
+    <TabNavigation
+      :tabs="tabs"
+      :active-tab="activeTab"
+      :styles="tabStyles"
+      @tab-change="handleTabChange"
     />
 
-    <!-- STEP 0.5: Seleção de Calendário -->
-    <CalendarSelector
-      v-else-if="step === 'select-calendar'"
-      :calendars="userCalendars"
-      :title="titleSelectCalendar"
-      :description="descriptionSelectCalendar"
-      :loading-text="labelLoadingCalendars"
-      :empty-text="labelNoCalendars"
-      :fetch-button-text="labelFetchCalendars"
-      :continue-button-text="buttonContinueCalendar"
-      :styles="calendarSelectorStyles"
-      @calendar-selected="handleCalendarSelected"
-      @fetch-calendars="handleFetchCalendars"
-      @continue="handleContinueFromCalendar"
-    />
+    <!-- ABA 1: Conexão/Autenticação -->
+    <div v-if="activeTab === 'auth'" class="tab-content">
+      <AuthPrompt
+        v-if="!isAuthenticated"
+        :auth-url="authUrl"
+        :title="titleAuth"
+        :description="descriptionAuth"
+        :button-text="buttonAuth"
+        :authenticating-text="labelAuthenticating"
+        :styles="authPromptStyles"
+        @auth-initiated="handleAuthInitiated"
+      />
 
-    <!-- STEP 1: Seleção de Período -->
+      <!-- Status de Autenticação (quando já está autenticado) -->
+      <div v-else class="auth-status">
+        <div class="status-icon" :style="{ color: successColor }">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h2 class="step-title" :style="titleStyle">Conectado com Sucesso</h2>
+        <p :style="mutedTextStyle">Sua conta do Google Calendar está conectada e funcionando.</p>
+
+        <div class="token-info" :style="surfaceStyle">
+          <div class="info-row">
+            <span :style="mutedTextStyle">Status:</span>
+            <span :style="{ color: successColor, fontWeight: '600' }">✓ Ativo</span>
+          </div>
+          <div class="info-row" v-if="userTokens && userTokens.expires_at">
+            <span :style="mutedTextStyle">Expira em:</span>
+            <span>{{ formatExpiryDate(userTokens.expires_at) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA 2: Seleção de Calendário -->
+    <div v-else-if="activeTab === 'calendar'" class="tab-content">
+      <CalendarSelector
+        :calendars="userCalendars"
+        :title="titleSelectCalendar"
+        :description="descriptionSelectCalendar"
+        :loading-text="labelLoadingCalendars"
+        :empty-text="labelNoCalendars"
+        :fetch-button-text="labelFetchCalendars"
+        :continue-button-text="buttonContinueCalendar"
+        :confirm-button-text="buttonConfirmCalendar"
+        :webhook-status="webhookStatus"
+        :webhook-section-title="labelWebhookTitle"
+        :webhook-button-active="buttonWebhookPause"
+        :webhook-button-inactive="buttonWebhookActivate"
+        :webhook-button-retry="buttonWebhookRetry"
+        :styles="calendarSelectorStyles"
+        @calendar-selected="handleCalendarSelected"
+        @fetch-calendars="handleFetchCalendars"
+        @continue="handleContinueFromCalendar"
+        @webhook-toggle="handleWebhookToggle"
+      />
+    </div>
+
+    <!-- ABA 3: Importação de Eventos -->
+    <div v-else-if="activeTab === 'import'" class="tab-content">
+      <!-- STEP 1: Seleção de Período -->
     <div v-if="step === 'select-period'" class="step-content">
       <h2 class="step-title" :style="titleStyle">{{ titleStep1 }}</h2>
 
@@ -192,27 +235,28 @@
       </div>
     </div>
 
-    <!-- STEP 6: Erro -->
-    <div v-else-if="step === 'error'" class="step-content step-centered">
-      <div class="error-icon" :style="errorIconStyle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="15" y1="9" x2="9" y2="15"></line>
-          <line x1="9" y1="9" x2="15" y2="15"></line>
-        </svg>
-      </div>
-      <h2 class="step-title" :style="titleStyle">Erro</h2>
-      <p class="error-message" :style="errorTextStyle">
-        {{ errorMessage }}
-      </p>
-      <div class="actions">
-        <button
-          class="btn btn-secondary"
-          :style="secondaryButtonStyle"
-          @click="goBack"
-        >
-          {{ buttonTryAgain }}
-        </button>
+      <!-- STEP 6: Erro -->
+      <div v-else-if="step === 'error'" class="step-content step-centered">
+        <div class="error-icon" :style="errorIconStyle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <h2 class="step-title" :style="titleStyle">Erro</h2>
+        <p class="error-message" :style="errorTextStyle">
+          {{ errorMessage }}
+        </p>
+        <div class="actions">
+          <button
+            class="btn btn-secondary"
+            :style="secondaryButtonStyle"
+            @click="goBack"
+          >
+            {{ buttonTryAgain }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -220,6 +264,7 @@
 
 <script>
 import { ref, computed, watch } from 'vue';
+import TabNavigation from './components/TabNavigation.vue';
 import AuthPrompt from './components/AuthPrompt.vue';
 import CalendarSelector from './components/CalendarSelector.vue';
 import PeriodSelector from './components/PeriodSelector.vue';
@@ -231,6 +276,7 @@ import Pagination from './components/Pagination.vue';
 export default {
   name: 'ImportGoogleCalendar',
   components: {
+    TabNavigation,
     AuthPrompt,
     CalendarSelector,
     PeriodSelector,
@@ -338,6 +384,7 @@ export default {
     };
 
     const step = ref(getInitialStep());
+    const activeTab = ref('auth'); // Nova variável para controlar aba ativa
     const timeMin = ref(null);
     const timeMax = ref(null);
     const events = ref([]);
@@ -465,6 +512,7 @@ export default {
     const labelNoCalendars = computed(() => props.content?.labelNoCalendars || 'Nenhum calendário encontrado. Clique no botão abaixo para buscar seus calendários do Google.');
     const labelLoadingCalendars = computed(() => props.content?.labelLoadingCalendars || 'Buscando calendários...');
     const buttonContinueCalendar = computed(() => props.content?.buttonContinueCalendar || 'Continuar');
+    const buttonConfirmCalendar = computed(() => props.content?.buttonConfirmCalendar || 'Confirmar Seleção');
 
     // Textos - Importação
     const titleStep1 = computed(() => props.content?.titleStep1 || 'Selecionar Período');
@@ -488,6 +536,86 @@ export default {
     const quickPeriod30 = computed(() => props.content?.quickPeriod30 || 'Próximos 30 dias');
     const quickPeriod90 = computed(() => props.content?.quickPeriod90 || 'Próximos 3 meses');
     const quickPeriod180 = computed(() => props.content?.quickPeriod180 || 'Próximos 6 meses');
+
+    // ===== Textos - Abas =====
+    const tabLabelAuth = computed(() => props.content?.tabLabelAuth || 'Conexão');
+    const tabLabelCalendar = computed(() => props.content?.tabLabelCalendar || 'Calendário');
+    const tabLabelImport = computed(() => props.content?.tabLabelImport || 'Importar');
+
+    // ===== Textos - Webhook =====
+    const labelWebhookTitle = computed(() => props.content?.labelWebhookTitle || 'Sincronização Automática');
+    const buttonWebhookPause = computed(() => props.content?.buttonWebhookPause || 'Pausar Sincronização');
+    const buttonWebhookActivate = computed(() => props.content?.buttonWebhookActivate || 'Ativar Sincronização');
+    const buttonWebhookRetry = computed(() => props.content?.buttonWebhookRetry || 'Reativar Webhook');
+
+    // Webhook Status (vindo de props bindáveis)
+    const webhookStatus = computed(() => props.content?.webhookStatus || null);
+
+    // ===== Sistema de Abas =====
+    const tabs = computed(() => [
+      {
+        id: 'auth',
+        label: tabLabelAuth.value,
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>`,
+        disabled: false
+      },
+      {
+        id: 'calendar',
+        label: tabLabelCalendar.value,
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>`,
+        disabled: !isAuthenticated.value,
+        badge: !isAuthenticated.value ? '!' : null
+      },
+      {
+        id: 'import',
+        label: tabLabelImport.value,
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>`,
+        disabled: !isAuthenticated.value || !hasActiveCalendar.value,
+        badge: (!isAuthenticated.value || !hasActiveCalendar.value) ? '!' : null
+      }
+    ]);
+
+    // Sincronizar aba ativa com autenticação e calendário
+    watch([isAuthenticated, hasActiveCalendar], ([authenticated, hasCalendar]) => {
+      if (isEditing.value) return;
+
+      // Se não está autenticado, força aba de autenticação
+      if (!authenticated && activeTab.value !== 'auth') {
+        activeTab.value = 'auth';
+      }
+
+      // Se está autenticado mas não tem calendário e está na aba de importação, volta para calendário
+      if (authenticated && !hasCalendar && activeTab.value === 'import') {
+        activeTab.value = 'calendar';
+      }
+    });
+
+    const handleTabChange = (tabId) => {
+      if (isEditing.value) return;
+      activeTab.value = tabId;
+
+      // Atualizar step baseado na aba
+      if (tabId === 'auth') {
+        step.value = isAuthenticated.value ? 'select-period' : 'not-authenticated';
+      } else if (tabId === 'calendar') {
+        step.value = 'select-calendar';
+      } else if (tabId === 'import') {
+        step.value = 'select-period';
+      }
+    };
 
     // ===== Estilos =====
     const containerStyle = computed(() => ({
@@ -620,6 +748,30 @@ export default {
       textColor: props.content?.textColor || '#1A202C',
       fontSize: props.content?.smallFontSize || '12px'
     }));
+
+    const tabStyles = computed(() => ({
+      borderColor: props.content?.borderColor || '#E2E8F0',
+      backgroundColor: props.content?.backgroundColor || '#FFFFFF',
+      primaryColor: props.content?.primaryColor || '#081B4E',
+      textColor: props.content?.textColor || '#1A202C',
+      textMutedColor: props.content?.textMutedColor || '#718096',
+      errorColor: props.content?.errorColor || '#E53E3E',
+      fontFamily: props.content?.fontFamily || 'inherit',
+      baseFontSize: props.content?.baseFontSize || '14px',
+      sectionGap: props.content?.sectionGap || '20px'
+    }));
+
+    const surfaceStyle = computed(() => ({
+      backgroundColor: props.content?.surfaceColor || '#F7FAFC',
+      borderRadius: '8px',
+      padding: '16px',
+      marginTop: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px'
+    }));
+
+    const successColor = computed(() => props.content?.successColor || '#38A169');
 
     const authPromptStyles = computed(() => ({
       containerPadding: props.content?.containerPadding || '24px',
@@ -1001,6 +1153,26 @@ export default {
       }
     };
 
+    const formatExpiryDate = (dateString) => {
+      try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = date - now;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffDays > 1) {
+          return `${diffDays} dias`;
+        } else if (diffHours > 1) {
+          return `${diffHours} horas`;
+        } else {
+          return 'Menos de 1 hora';
+        }
+      } catch {
+        return 'Data inválida';
+      }
+    };
+
     const handleAuthInitiated = () => {
       if (isEditing.value) return;
 
@@ -1076,6 +1248,15 @@ export default {
       step.value = 'select-period';
     };
 
+    const handleWebhookToggle = () => {
+      if (isEditing.value) return;
+
+      emit('trigger-event', {
+        name: 'webhook-toggle',
+        event: {}
+      });
+    };
+
     const handleClose = () => {
       if (isEditing.value) return;
 
@@ -1137,6 +1318,7 @@ export default {
     return {
       // Estado
       step,
+      activeTab,
       timeMin,
       timeMax,
       events,
@@ -1148,9 +1330,14 @@ export default {
       currentPage,
       isEditing,
 
+      // Sistema de Abas
+      tabs,
+      handleTabChange,
+
       // Computed
       importedGoogleIds,
       userCalendars,
+      userTokens,
       hasActiveCalendar,
       filteredEvents,
       paginatedEvents,
@@ -1173,6 +1360,11 @@ export default {
       buttonAuth,
       labelAuthenticating,
 
+      // Textos - Abas
+      tabLabelAuth,
+      tabLabelCalendar,
+      tabLabelImport,
+
       // Textos - Calendário
       titleSelectCalendar,
       descriptionSelectCalendar,
@@ -1180,6 +1372,14 @@ export default {
       labelNoCalendars,
       labelLoadingCalendars,
       buttonContinueCalendar,
+      buttonConfirmCalendar,
+
+      // Textos - Webhook
+      labelWebhookTitle,
+      buttonWebhookPause,
+      buttonWebhookActivate,
+      buttonWebhookRetry,
+      webhookStatus,
 
       // Textos - Importação
       titleStep1,
@@ -1209,6 +1409,8 @@ export default {
       titleStyle,
       textStyle,
       mutedTextStyle,
+      surfaceStyle,
+      successColor,
       primaryButtonStyle,
       secondaryButtonStyle,
       spinnerStyle,
@@ -1221,6 +1423,7 @@ export default {
       eventItemStyles,
       badgeColors,
       paginationStyles,
+      tabStyles,
       authPromptStyles,
       calendarSelectorStyles,
 
@@ -1229,6 +1432,7 @@ export default {
       handleCalendarSelected,
       handleFetchCalendars,
       handleContinueFromCalendar,
+      handleWebhookToggle,
       renewToken,
       fetchEvents,
       importEvents,
@@ -1236,6 +1440,7 @@ export default {
       toggleGroupSelection,
       toggleAllFiltered,
       goBack,
+      formatExpiryDate,
       handleClose,
       reset,
       goToStep
@@ -1387,5 +1592,99 @@ export default {
 .success-message,
 .error-message {
   margin: 8px 0 16px;
+}
+
+// ===== Estilos das Abas =====
+.tab-content {
+  width: 100%;
+}
+
+.auth-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+
+  .status-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(56, 161, 105, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+
+    svg {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .step-title {
+    margin-bottom: 8px;
+  }
+
+  .token-info {
+    width: 100%;
+    max-width: 400px;
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+  }
+}
+
+// ===== Responsividade =====
+@media (max-width: 768px) {
+  .import-google-calendar {
+    padding: 16px !important;
+  }
+
+  .step-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    width: 100%;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .auth-status {
+    padding: 24px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .import-google-calendar {
+    padding: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .step-title {
+    font-size: 18px !important;
+  }
+
+  .auth-status {
+    .status-icon {
+      width: 48px;
+      height: 48px;
+
+      svg {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
 }
 </style>
