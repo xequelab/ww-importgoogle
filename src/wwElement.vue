@@ -21,84 +21,92 @@
         @auth-initiated="handleAuthInitiated"
       />
 
-      <!-- Status de Conexão - 2 Requisitos Obrigatórios -->
-      <div v-else class="connection-status">
-        <h2 class="step-title" :style="titleStyle">{{ labelConnectionTitle }}</h2>
-        <p :style="mutedTextStyle">{{ labelConnectionDescription }}</p>
-
-        <!-- Indicador de Progresso -->
-        <div class="connection-progress" :style="connectionProgressStyle">
-          <div class="progress-header">
-            <span :style="{ fontWeight: '600', fontSize: '16px' }">{{ connectionProgressText }}</span>
-            <span :style="connectionProgressBadgeStyle">{{ connectionProgressCount }}</span>
+      <!-- Status de Conexão - Design Bonito -->
+      <div v-else class="connection-status-v2">
+        <div class="connection-header">
+          <div>
+            <h2 class="connection-title" :style="titleStyle">{{ labelConnectionTitle }}</h2>
+            <p class="connection-description" :style="mutedTextStyle">{{ labelConnectionDescription }}</p>
+          </div>
+          <div class="progress-badge-v2" :style="connectionProgressBadgeStyleV2">
+            {{ connectionProgressCount }}
           </div>
         </div>
 
-        <!-- Lista de Requisitos -->
-        <div class="requirements-list">
-          <!-- Requisito 1: Autorização Google -->
-          <div class="requirement-item" :style="getRequirementItemStyle(true)">
-            <div class="requirement-number" :style="getRequirementNumberStyle(true)">
-              <svg v-if="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span v-else>1</span>
+        <!-- Cards de Requisitos -->
+        <div class="requirements-grid">
+          <!-- Card 1: Autorização -->
+          <div class="req-card" :class="{ 'req-card-complete': true }">
+            <div class="req-card-header">
+              <div class="req-icon req-icon-complete">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="req-info">
+                <div class="req-number">Requisito 1</div>
+                <h3 class="req-title">Autorização Google</h3>
+              </div>
             </div>
-            <div class="requirement-content">
-              <h3 class="requirement-title" :style="requirementTitleStyle">{{ labelRequirement1Title }}</h3>
-              <p class="requirement-description" :style="mutedTextStyle">{{ labelRequirement1Description }}</p>
-              <div v-if="userTokens" class="requirement-details" :style="requirementDetailsStyle">
-                <div class="detail-item">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <span>{{ userTokens.email }}</span>
-                </div>
+            <div class="req-body">
+              <p class="req-desc" :style="mutedTextStyle">Conta conectada com sucesso</p>
+              <div v-if="userTokens?.email" class="req-detail-chip">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                </svg>
+                <span>{{ userTokens.email }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Requisito 2: Agenda Selecionada -->
-          <div class="requirement-item" :style="getRequirementItemStyle(hasActiveCalendar)">
-            <div class="requirement-number" :style="getRequirementNumberStyle(hasActiveCalendar)">
-              <svg v-if="hasActiveCalendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span v-else>2</span>
-            </div>
-            <div class="requirement-content">
-              <h3 class="requirement-title" :style="requirementTitleStyle">{{ labelRequirement2Title }}</h3>
-              <p class="requirement-description" :style="mutedTextStyle">{{ labelRequirement2Description }}</p>
-              <div v-if="activeCalendar" class="requirement-details" :style="requirementDetailsStyle">
-                <div class="detail-item">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
-                  <span>{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</span>
-                </div>
+          <!-- Card 2: Agenda -->
+          <div class="req-card" :class="{ 'req-card-complete': hasActiveCalendar, 'req-card-pending': !hasActiveCalendar }">
+            <div class="req-card-header">
+              <div class="req-icon" :class="{ 'req-icon-complete': hasActiveCalendar, 'req-icon-pending': !hasActiveCalendar }">
+                <svg v-if="hasActiveCalendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span v-else class="req-number-badge">2</span>
               </div>
+              <div class="req-info">
+                <div class="req-number">Requisito 2</div>
+                <h3 class="req-title">Agenda Selecionada</h3>
+              </div>
+            </div>
+            <div class="req-body">
+              <p v-if="hasActiveCalendar" class="req-desc" :style="mutedTextStyle">Agenda configurada para sincronização</p>
+              <p v-else class="req-desc" :style="mutedTextStyle">Escolha qual calendário será sincronizado</p>
+
+              <div v-if="activeCalendar" class="req-detail-chip">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</span>
+              </div>
+
               <button
-                v-if="!hasActiveCalendar"
-                class="btn btn-primary"
-                :style="{ ...primaryButtonStyle, marginTop: '12px', width: '100%' }"
+                v-else
+                class="btn-select-v2"
+                :style="selectCalendarButtonStyleV2"
                 @click="goToCalendarTab"
               >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
                 {{ labelSelectCalendarButton }}
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Mensagem de Sucesso quando completo -->
-        <div v-if="isFullyConnected" class="connection-complete" :style="connectionCompleteStyle">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
+        <!-- Banner de Sucesso -->
+        <div v-if="isFullyConnected" class="success-banner-v2">
+          <div class="success-icon-v2">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
           <span>{{ labelConnectionComplete }}</span>
         </div>
       </div>
@@ -740,6 +748,36 @@ export default {
         flexShrink: '0'
       };
     };
+
+    // Novos estilos V2 (design bonito)
+    const connectionProgressBadgeStyleV2 = computed(() => ({
+      backgroundColor: isFullyConnected.value
+        ? (props.content?.successColor || '#38A169')
+        : (props.content?.secondaryColor || '#4A5568'),
+      color: '#FFFFFF',
+      padding: '6px 16px',
+      borderRadius: '20px',
+      fontSize: '13px',
+      fontWeight: '700',
+      letterSpacing: '0.5px'
+    }));
+
+    const selectCalendarButtonStyleV2 = computed(() => ({
+      backgroundColor: props.content?.primaryColor || '#081B4E',
+      color: '#FFFFFF',
+      padding: '10px 16px',
+      borderRadius: '6px',
+      border: 'none',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      transition: 'all 0.2s ease',
+      width: '100%',
+      justifyContent: 'center'
+    }));
 
 
     // ===== Sistema de Abas =====
@@ -1663,6 +1701,8 @@ export default {
       requirementDetailsStyle,
       getRequirementItemStyle,
       getRequirementNumberStyle,
+      connectionProgressBadgeStyleV2,
+      selectCalendarButtonStyleV2,
 
       // Textos - Importação
       titleStep1,
@@ -1889,7 +1929,194 @@ export default {
   width: 100%;
 }
 
-// Connection Status (Nova UX de Requisitos)
+// Connection Status V2 (Design Bonito)
+.connection-status-v2 {
+  padding: 0;
+
+  .connection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  .connection-title {
+    margin: 0 0 4px 0;
+  }
+
+  .connection-description {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .progress-badge-v2 {
+    flex-shrink: 0;
+  }
+}
+
+.requirements-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.req-card {
+  background: var(--surface-color, #F7FAFC);
+  border: 2px solid var(--border-color, #E2E8F0);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+
+  &.req-card-complete {
+    border-color: var(--success-color, #38A169);
+    background: rgba(56, 161, 105, 0.02);
+  }
+
+  &.req-card-pending {
+    border-color: var(--border-color, #E2E8F0);
+    opacity: 0.85;
+  }
+}
+
+.req-card-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.req-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justif-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+
+  &.req-icon-complete {
+    background-color: var(--success-color, #38A169);
+    color: white;
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  &.req-icon-pending {
+    background-color: var(--border-color, #E2E8F0);
+    color: var(--text-muted, #718096);
+  }
+
+  .req-number-badge {
+    font-size: 20px;
+    font-weight: 700;
+  }
+}
+
+.req-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.req-number {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #718096);
+  margin-bottom: 4px;
+}
+
+.req-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color, #1A202C);
+  line-height: 1.3;
+}
+
+.req-body {
+  .req-desc {
+    font-size: 13px;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+  }
+}
+
+.req-detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-color, #1A202C);
+  font-weight: 500;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  span {
+    word-break: break-word;
+  }
+}
+
+.btn-select-v2 {
+  font-family: inherit;
+  margin-top: 4px;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+}
+
+.success-banner-v2 {
+  background: linear-gradient(135deg, rgba(56, 161, 105, 0.1) 0%, rgba(56, 161, 105, 0.05) 100%);
+  border: 2px solid var(--success-color, #38A169);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--success-color, #38A169);
+  font-weight: 600;
+  font-size: 14px;
+
+  .success-icon-v2 {
+    width: 32px;
+    height: 32px;
+    background: var(--success-color, #38A169);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      color: white;
+    }
+  }
+}
+
+// Connection Status (Antigo - manter)
 .connection-status {
   padding: 20px 0;
 
@@ -2088,6 +2315,45 @@ export default {
 
   .connection-status {
     padding: 16px 0;
+  }
+
+  .connection-status-v2 {
+    .connection-header {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .requirements-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .req-card {
+      padding: 16px;
+    }
+
+    .req-icon {
+      width: 40px;
+      height: 40px;
+
+      &.req-icon-complete svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .req-number-badge {
+        font-size: 18px;
+      }
+    }
+
+    .req-title {
+      font-size: 15px;
+    }
+
+    .success-banner-v2 {
+      font-size: 13px;
+      padding: 14px 16px;
+    }
   }
 
   .connection-progress {
