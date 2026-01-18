@@ -371,6 +371,46 @@ export default {
       defaultValue: 0
     });
 
+    // Variáveis do calendário selecionado
+    const { value: selectedCalendarId, setValue: setSelectedCalendarId } = wwLib.wwVariable.useComponentVariable({
+      uid: props.uid,
+      name: 'selectedCalendarId',
+      type: 'string',
+      defaultValue: null
+    });
+
+    const { value: selectedCalendarName, setValue: setSelectedCalendarName } = wwLib.wwVariable.useComponentVariable({
+      uid: props.uid,
+      name: 'selectedCalendarName',
+      type: 'string',
+      defaultValue: null
+    });
+
+    const { value: selectedCalendarObject, setValue: setSelectedCalendarObject } = wwLib.wwVariable.useComponentVariable({
+      uid: props.uid,
+      name: 'selectedCalendar',
+      type: 'object',
+      defaultValue: null
+    });
+
+    // Computed para o calendário ativo
+    const activeCalendar = computed(() => {
+      return userCalendars.value.find(cal => cal.recebe_agendamentos === true) || null;
+    });
+
+    // Sincronizar calendário ativo com variáveis expostas
+    watch(activeCalendar, (calendar) => {
+      if (calendar) {
+        setSelectedCalendarId(calendar.calendar_id || null);
+        setSelectedCalendarName(calendar.summary_override || calendar.calendar_summary || null);
+        setSelectedCalendarObject(calendar);
+      } else {
+        setSelectedCalendarId(null);
+        setSelectedCalendarName(null);
+        setSelectedCalendarObject(null);
+      }
+    }, { immediate: true });
+
     // Sincronizar step com variável exposta
     watch(step, (newStep) => {
       setCurrentStep(newStep);

@@ -133,8 +133,11 @@ ww-importgooglecalendar/
 | currentStep | string | Step atual do componente |
 | selectedCount | number | Quantidade de eventos selecionados |
 | totalEvents | number | Total de eventos carregados |
+| selectedCalendarId | string | ID do calendário sincronizado (calendar_id do Google) |
+| selectedCalendarName | string | Nome do calendário sincronizado |
+| selectedCalendar | object | Objeto completo do calendário sincronizado |
 
-Acesso via: `variables['uid-currentStep']`, `variables['uid-selectedCount']`, `variables['uid-totalEvents']`
+Acesso via: `variables['uid-currentStep']`, `variables['uid-selectedCount']`, `variables['uid-totalEvents']`, `variables['uid-selectedCalendarId']`, `variables['uid-selectedCalendarName']`, `variables['uid-selectedCalendar']`
 
 ## Integração com Edge Functions
 
