@@ -64,29 +64,31 @@
             </div>
             <div class="checklist-body">
               <div class="checklist-label">Agenda Sincronizada</div>
-              <div v-if="activeCalendar" class="checklist-value">{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</div>
-              
-              <div class="checklist-actions" v-if="!activeCalendar || !isWebhookActive">
-                <button 
-                  v-if="!activeCalendar" 
-                  class="checklist-action" 
-                  @click="goToCalendarTab"
-                >
-                  Selecionar agenda
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                </button>
-                <button 
-                  v-else-if="!isWebhookActive" 
-                  class="checklist-action action-warning" 
-                  @click="handleWebhookToggle"
-                >
-                  Ativar Sincronização
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
-                  </svg>
-                </button>
+              <div class="checklist-row-content">
+                <div v-if="activeCalendar" class="checklist-value">{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</div>
+                
+                <div class="checklist-actions" v-if="!activeCalendar || !isWebhookActive">
+                  <button 
+                    v-if="!activeCalendar" 
+                    class="checklist-action" 
+                    @click="goToCalendarTab"
+                  >
+                    Selecionar agenda
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                  <button 
+                    v-else-if="!isWebhookActive" 
+                    class="checklist-action action-warning" 
+                    @click="handleWebhookToggle"
+                  >
+                    Ativar Sincronização
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1504,65 +1506,79 @@ export default {
     const handleWebhookToggle = async () => {
       if (isEditing.value) return;
 
-      if (isWebhookActive.value) {
-        emit('trigger-event', { name: 'webhook-toggle', event: { action: 'pause' } });
-        return;
-      }
+      const calendarId = activeCalendar.value?.calendar_id;
+      const action = isWebhookActive.value ? 'pause' : 'activate';
 
-      if (!createWebhookEndpoint.value) {
-        console.error('Create Webhook Endpoint not configured');
-        emit('trigger-event', { name: 'fetch-error', event: { message: 'Endpoint de criação de webhook não configurado' } });
-        return;
-      }
+      // SEMPRE emitir o evento para permitir Workflows no WeWeb
+      // O usuário pode bindar esse evento e rodar a lógica inteira por fora se quiser
+      emit('trigger-event', { 
+        name: 'webhook-toggle', 
+        event: { 
+          action, 
+          calendarId,
+          status: webhookStatus.value?.status 
+        } 
+      });
 
-      if (!activeCalendar.value) {
-        console.error('No active calendar selected');
-        return;
-      }
+      // Se for pausa, paramos aqui (por enquanto assumimos que o workflow lida ou não tem endpoint de pause)
+      if (action === 'pause') return;
 
-      if (!authToken.value) {
-        emit('trigger-event', { name: 'fetch-error', event: { message: 'Token de autenticação não fornecido' } });
-        return;
-      }
-
-      try {
-        isRenewingToken.value = true;
-        
-        const response = await fetch(createWebhookEndpoint.value, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken.value}`
-          },
-          body: JSON.stringify({
-            calendarId: activeCalendar.value.calendar_id
-          })
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Erro na API (${response.status}): ${errText}`);
+      // Lógica de Ativação interna (opcional)
+      // Só executa se o usuário tiver configurado o endpoint no componente
+      if (action === 'activate' && createWebhookEndpoint.value) {
+        if (!calendarId) {
+          console.error('No active calendar selected');
+          return;
         }
 
-        const result = await response.json();
-
-        if (result.success) {
-           emit('trigger-event', { 
-             name: 'webhook-toggle', 
-             event: { 
-               action: 'activated', 
-               result 
-             } 
-           });
-        } else {
-          throw new Error(result.error || 'Erro desconhecido ao criar webhook');
+        if (!authToken.value) {
+          emit('trigger-event', { name: 'fetch-error', event: { message: 'Token de autenticação não fornecido' } });
+          return;
         }
 
-      } catch (error) {
-        console.error('Erro ao ativar webhook:', error);
-        emit('trigger-event', { name: 'fetch-error', event: { message: error.message } });
-      } finally {
-        isRenewingToken.value = false;
+        try {
+          isRenewingToken.value = true;
+          
+          const response = await fetch(createWebhookEndpoint.value, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken.value}`
+            },
+            body: JSON.stringify({
+              calendarId
+            })
+          });
+
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Erro na API (${response.status}): ${errText}`);
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Emite evento extra de sucesso se a chamada interna funcionou
+             emit('trigger-event', { 
+               name: 'webhook-toggle', 
+               event: { 
+                 action: 'activated_success', 
+                 result 
+               } 
+             });
+          } else {
+            throw new Error(result.error || 'Erro desconhecido ao criar webhook');
+          }
+
+        } catch (error) {
+          console.error('Erro ao ativar webhook internamente:', error);
+          emit('trigger-event', { name: 'fetch-error', event: { message: error.message } });
+        } finally {
+          isRenewingToken.value = false;
+        }
+      } else if (action === 'activate') {
+        // Se entrou aqui, é porque não tem endpoint configurado, então confiamos 100% no Workflow e logamos info
+        console.log('Webhook toggle clicked. Event emitted. Create Webhook Endpoint not configured, relying on Workflow.');
       }
     };
 
@@ -2157,7 +2173,15 @@ export default {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 2px;
+}
+
+.checklist-row-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 // Connection Status V2 (Design Bonito - Manter)
