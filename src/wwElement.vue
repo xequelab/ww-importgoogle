@@ -21,25 +21,85 @@
         @auth-initiated="handleAuthInitiated"
       />
 
-      <!-- Status de Autenticação (quando já está autenticado) -->
-      <div v-else class="auth-status">
-        <div class="status-icon" :style="{ color: successColor }">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-        </div>
-        <h2 class="step-title" :style="titleStyle">Conectado com Sucesso</h2>
-        <p :style="mutedTextStyle">Sua conta do Google Calendar está conectada e funcionando.</p>
+      <!-- Status de Conexão Completo (quando já está autenticado) -->
+      <div v-else class="connection-status">
+        <h2 class="step-title" :style="titleStyle">Status da Integração</h2>
+        <p :style="mutedTextStyle">Verifique o status da sua conexão com o Google Calendar.</p>
 
-        <div class="token-info" :style="surfaceStyle">
-          <div class="info-row">
-            <span :style="mutedTextStyle">Status:</span>
-            <span :style="{ color: successColor, fontWeight: '600' }">✓ Ativo</span>
+        <!-- Item 1: Autorização Google -->
+        <div class="status-item" :style="statusItemStyle">
+          <div class="status-item-header">
+            <div class="status-item-icon" :style="getStatusIconStyle(true)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <div class="status-item-content">
+              <h3 class="status-item-title">Autorização Google</h3>
+              <p class="status-item-status" :style="{ color: successColor, fontWeight: '600' }">
+                ✓ Conectado
+              </p>
+            </div>
           </div>
-          <div class="info-row" v-if="userTokens && userTokens.expires_at">
-            <span :style="mutedTextStyle">Expira em:</span>
-            <span>{{ formatExpiryDate(userTokens.expires_at) }}</span>
+          <div class="status-item-details" :style="statusDetailsStyle">
+            <div class="detail-row">
+              <span :style="mutedTextStyle">Conta:</span>
+              <span>{{ userTokens?.email || 'N/A' }}</span>
+            </div>
+            <div class="detail-row" v-if="userTokens && userTokens.expires_at">
+              <span :style="mutedTextStyle">Expira em:</span>
+              <span>{{ formatExpiryDate(userTokens.expires_at) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 2: Sincronização Ativa -->
+        <div class="status-item" :style="statusItemStyle">
+          <div class="status-item-header">
+            <div class="status-item-icon" :style="getStatusIconStyle(isSyncActive)">
+              <svg v-if="isSyncActive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <div class="status-item-content">
+              <h3 class="status-item-title">Sincronização Automática</h3>
+              <p class="status-item-status" :style="getSyncStatusStyle">
+                {{ syncStatusText }}
+              </p>
+            </div>
+          </div>
+          <div v-if="activeCalendar || webhookStatus" class="status-item-details" :style="statusDetailsStyle">
+            <div v-if="activeCalendar" class="detail-row">
+              <span :style="mutedTextStyle">Calendário:</span>
+              <span>{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</span>
+            </div>
+            <div v-if="webhookStatus && webhookStatus.status" class="detail-row">
+              <span :style="mutedTextStyle">Webhook:</span>
+              <span :style="getWebhookStatusTextStyle(webhookStatus.status)">
+                {{ getWebhookStatusLabel(webhookStatus.status) }}
+              </span>
+            </div>
+            <div v-if="webhookStatus && webhookStatus.lastSync" class="detail-row">
+              <span :style="mutedTextStyle">Última sincronização:</span>
+              <span>{{ webhookStatus.lastSync }}</span>
+            </div>
+          </div>
+          <div v-if="!isSyncActive" class="status-item-action">
+            <button
+              class="btn btn-primary"
+              :style="{ ...primaryButtonStyle, marginTop: '12px' }"
+              @click="goToCalendarTab"
+            >
+              {{ labelConfigureSync }}
+            </button>
           </div>
         </div>
       </div>
@@ -558,9 +618,40 @@ export default {
     const buttonWebhookPause = computed(() => props.content?.buttonWebhookPause || 'Pausar Sincronização');
     const buttonWebhookActivate = computed(() => props.content?.buttonWebhookActivate || 'Ativar Sincronização');
     const buttonWebhookRetry = computed(() => props.content?.buttonWebhookRetry || 'Reativar Webhook');
+    const labelConfigureSync = computed(() => props.content?.labelConfigureSync || 'Configurar Sincronização');
 
     // Webhook Status (vindo de props bindáveis)
     const webhookStatus = computed(() => props.content?.webhookStatus || null);
+
+    // ===== Status de Sincronização =====
+    const isSyncActive = computed(() => {
+      // Sincronização está ativa se:
+      // 1. Tem calendário selecionado (recebe_agendamentos = true)
+      // 2. E tem webhook ativo
+      const hasCalendar = hasActiveCalendar.value;
+      const hasWebhook = webhookStatus.value && webhookStatus.value.status === 'active';
+      return hasCalendar && hasWebhook;
+    });
+
+    const syncStatusText = computed(() => {
+      if (isSyncActive.value) {
+        return '✓ Ativa';
+      }
+      if (hasActiveCalendar.value && (!webhookStatus.value || webhookStatus.value.status !== 'active')) {
+        return '⚠ Webhook inativo';
+      }
+      if (!hasActiveCalendar.value) {
+        return '⚠ Calendário não configurado';
+      }
+      return '⚠ Não configurada';
+    });
+
+    const getSyncStatusStyle = computed(() => {
+      if (isSyncActive.value) {
+        return { color: props.content?.successColor || '#38A169', fontWeight: '600' };
+      }
+      return { color: props.content?.errorColor || '#E53E3E', fontWeight: '600' };
+    });
 
     // ===== Sistema de Abas =====
     const tabs = computed(() => [
@@ -810,6 +901,42 @@ export default {
       buttonFontSize: props.content?.buttonFontSize || '14px',
       buttonFontWeight: props.content?.buttonFontWeight || '600'
     }));
+
+    // Estilos para a aba de conexão
+    const statusItemStyle = computed(() => ({
+      backgroundColor: props.content?.surfaceColor || '#F7FAFC',
+      border: `1px solid ${props.content?.borderColor || '#E2E8F0'}`,
+      borderRadius: '8px',
+      padding: '20px',
+      marginTop: '16px'
+    }));
+
+    const statusDetailsStyle = computed(() => ({
+      marginTop: '12px',
+      paddingTop: '12px',
+      borderTop: `1px solid ${props.content?.borderColor || '#E2E8F0'}`,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px'
+    }));
+
+    const getStatusIconStyle = (isActive) => {
+      return {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        backgroundColor: isActive
+          ? `rgba(56, 161, 105, 0.1)`
+          : `rgba(229, 62, 62, 0.1)`,
+        color: isActive
+          ? (props.content?.successColor || '#38A169')
+          : (props.content?.errorColor || '#E53E3E'),
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: '0'
+      };
+    };
 
     // ===== Computed para eventos =====
     const filteredEvents = computed(() => {
@@ -1275,6 +1402,32 @@ export default {
       });
     };
 
+    const goToCalendarTab = () => {
+      if (isEditing.value) return;
+      activeTab.value = 'calendar';
+    };
+
+    const getWebhookStatusLabel = (status) => {
+      const statusMap = {
+        'active': '✓ Ativo',
+        'inactive': 'Inativo',
+        'error': '⚠ Erro'
+      };
+      return statusMap[status] || 'Desconhecido';
+    };
+
+    const getWebhookStatusTextStyle = (status) => {
+      const colors = {
+        'active': props.content?.successColor || '#38A169',
+        'inactive': props.content?.textMutedColor || '#718096',
+        'error': props.content?.errorColor || '#E53E3E'
+      };
+      return {
+        color: colors[status] || colors.inactive,
+        fontWeight: '600'
+      };
+    };
+
     const handleClose = () => {
       if (isEditing.value) return;
 
@@ -1357,6 +1510,10 @@ export default {
       userCalendars,
       userTokens,
       hasActiveCalendar,
+      activeCalendar,
+      isSyncActive,
+      syncStatusText,
+      getSyncStatusStyle,
       filteredEvents,
       paginatedEvents,
       totalPages,
@@ -1397,6 +1554,7 @@ export default {
       buttonWebhookPause,
       buttonWebhookActivate,
       buttonWebhookRetry,
+      labelConfigureSync,
       webhookStatus,
 
       // Textos - Importação
@@ -1444,6 +1602,9 @@ export default {
       tabStyles,
       authPromptStyles,
       calendarSelectorStyles,
+      statusItemStyle,
+      statusDetailsStyle,
+      getStatusIconStyle,
 
       // Métodos
       handleAuthInitiated,
@@ -1452,6 +1613,9 @@ export default {
       handleFetchCalendars,
       handleContinueFromCalendar,
       handleWebhookToggle,
+      goToCalendarTab,
+      getWebhookStatusLabel,
+      getWebhookStatusTextStyle,
       renewToken,
       fetchEvents,
       importEvents,
@@ -1618,6 +1782,74 @@ export default {
   width: 100%;
 }
 
+// Connection Status (nova aba de conexão)
+.connection-status {
+  padding: 20px 0;
+
+  .step-title {
+    margin-bottom: 8px;
+  }
+}
+
+.status-item {
+  box-sizing: border-box;
+
+  .status-item-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .status-item-icon {
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .status-item-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .status-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 4px 0;
+  }
+
+  .status-item-status {
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .status-item-details {
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      font-size: 14px;
+
+      span:first-child {
+        flex-shrink: 0;
+      }
+
+      span:last-child {
+        text-align: right;
+        word-break: break-word;
+      }
+    }
+  }
+
+  .status-item-action {
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+
+// Mantém estilo antigo para compatibilidade
 .auth-status {
   display: flex;
   flex-direction: column;
@@ -1682,6 +1914,48 @@ export default {
   .auth-status {
     padding: 24px 16px;
   }
+
+  .connection-status {
+    padding: 16px 0;
+  }
+
+  .status-item {
+    padding: 16px !important;
+
+    .status-item-header {
+      gap: 12px;
+    }
+
+    .status-item-icon {
+      width: 36px !important;
+      height: 36px !important;
+
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .status-item-title {
+      font-size: 15px !important;
+    }
+
+    .status-item-status {
+      font-size: 13px !important;
+    }
+
+    .status-item-details {
+      .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+
+        span:last-child {
+          text-align: left;
+        }
+      }
+    }
+  }
 }
 
 @media (max-width: 480px) {
@@ -1703,6 +1977,36 @@ export default {
         width: 24px;
         height: 24px;
       }
+    }
+  }
+
+  .connection-status {
+    padding: 12px 0;
+  }
+
+  .status-item {
+    padding: 14px !important;
+
+    .status-item-icon {
+      width: 32px !important;
+      height: 32px !important;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .status-item-title {
+      font-size: 14px !important;
+    }
+
+    .status-item-status {
+      font-size: 12px !important;
+    }
+
+    .status-item-details {
+      font-size: 12px !important;
     }
   }
 }
