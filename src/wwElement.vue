@@ -65,12 +65,28 @@
             <div class="checklist-body">
               <div class="checklist-label">Agenda Sincronizada</div>
               <div v-if="activeCalendar" class="checklist-value">{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</div>
-              <button v-else class="checklist-action" @click="goToCalendarTab">
-                Selecionar agenda
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                </svg>
-              </button>
+              <div v-else class="checklist-actions">
+                <button 
+                  v-if="!activeCalendar" 
+                  class="checklist-action" 
+                  @click="goToCalendarTab"
+                >
+                  Selecionar agenda
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+                <button 
+                  v-else-if="!isWebhookActive" 
+                  class="checklist-action action-warning" 
+                  @click="handleWebhookToggle"
+                >
+                  Ativar Sincronização
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2066,6 +2082,14 @@ export default {
   &:hover {
     color: #1D4ED8;
     gap: 6px;
+  }
+
+  &.action-warning {
+    color: #D97706;  /* Amber-600 */
+    
+    &:hover {
+      color: #B45309; /* Amber-700 */
+    }
   }
 }
 

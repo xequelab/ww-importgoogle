@@ -233,9 +233,9 @@ export default {
       return calendar.recebe_agendamentos === true;
     };
 
-    // Badge "Sincronizado" só aparece para o que está REALMENTE no banco
+    // Badge "Sincronizado" só aparece para o que está REALMENTE no banco E tem webhook ativo
     const isCalendarSynced = (calendar) => {
-      return calendar.recebe_agendamentos === true;
+      return calendar.recebe_agendamentos === true && props.webhookStatus?.status === 'active';
     };
 
     const handleCalendarClick = (calendar) => {
