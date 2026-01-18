@@ -2259,7 +2259,7 @@ export default {
   border-radius: 50%;
   display: flex;
   align-items: center;
-  justif-content: center;
+  justify-content: center;
   flex-shrink: 0;
   transition: all 0.3s ease;
 
