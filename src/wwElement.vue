@@ -39,7 +39,7 @@
           </div>
         </div>
 
-        <!-- Checklist -->
+        <!-- Checklist com Indentação -->
         <div class="checklist">
           <div class="checklist-item checklist-success">
             <div class="checklist-marker">
@@ -53,9 +53,9 @@
             </div>
           </div>
 
-          <div class="checklist-item" :class="{ 'checklist-success': hasActiveCalendar, 'checklist-pending': !hasActiveCalendar }">
+          <div class="checklist-item" :class="{ 'checklist-success': isWebhookActive, 'checklist-pending': !isWebhookActive }">
             <div class="checklist-marker">
-              <svg v-if="hasActiveCalendar" viewBox="0 0 20 20" fill="currentColor">
+              <svg v-if="isWebhookActive" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
               <svg v-else viewBox="0 0 20 20" fill="currentColor">
@@ -347,14 +347,6 @@ export default {
     const renewTokenEndpoint = computed(() => props.content?.renewTokenEndpoint || '');
 
     const isAuthenticated = computed(() => {
-      console.log('🔍 Checking authentication:', {
-        hasTokens: !!userTokens.value,
-        status: userTokens.value?.status,
-        hasAccessToken: !!userTokens.value?.access_token,
-        isExpired: isTokenExpired.value,
-        expiresAt: userTokens.value?.expires_at
-      });
-
       if (!userTokens.value) return false;
       if (userTokens.value.status !== 'active') return false;
       if (!userTokens.value.access_token) return false;
@@ -615,9 +607,13 @@ export default {
     const labelSelectCalendarButton = computed(() => props.content?.labelSelectCalendarButton || 'Selecionar Agenda');
     const labelConnectionComplete = computed(() => props.content?.labelConnectionComplete || '✓ Integração configurada com sucesso! Você já pode importar eventos.');
 
-    // ===== Status de Conexão Completa =====
+    // ===== Status de Webhook e Conexão =====
+    const isWebhookActive = computed(() => {
+      return webhookStatus.value && webhookStatus.value.status === 'active';
+    });
+
     const isFullyConnected = computed(() => {
-      return isAuthenticated.value && hasActiveCalendar.value;
+      return isAuthenticated.value && hasActiveCalendar.value && isWebhookActive.value;
     });
 
     const connectionProgressText = computed(() => {
@@ -1656,6 +1652,7 @@ export default {
       labelRequirement2Description,
       labelSelectCalendarButton,
       labelConnectionComplete,
+      isWebhookActive,
       isFullyConnected,
       connectionProgressText,
       connectionProgressCount,
@@ -1905,8 +1902,8 @@ export default {
     gap: 12px;
 
     &.alert-success {
-      background-color: #D1FAE5;
-      border: 1px solid #6EE7B7;
+      background-color: #ECFDF5;
+      border: 1px solid #A7F3D0;
 
       .alert-icon {
         color: #059669;
@@ -1970,21 +1967,22 @@ export default {
 .checklist {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  margin-left: 32px;
 }
 
 .checklist-item {
   display: flex;
   align-items: flex-start;
-  padding: 14px 16px;
+  padding: 12px 14px;
   background: white;
   border: 1.5px solid #E5E7EB;
-  border-radius: 8px;
-  gap: 12px;
+  border-radius: 6px;
+  gap: 10px;
   transition: all 0.2s ease;
 
   &.checklist-success {
-    border-color: #10B981;
+    border-color: #A7F3D0;
     background: #F0FDF4;
 
     .checklist-marker {
@@ -2477,8 +2475,12 @@ export default {
       }
     }
 
+    .checklist {
+      margin-left: 24px;
+    }
+
     .checklist-item {
-      padding: 12px 14px;
+      padding: 10px 12px;
     }
 
     .checklist-label {
