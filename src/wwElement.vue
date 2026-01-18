@@ -253,16 +253,7 @@ export default {
       if (!userTokens.value) return false;
       if (userTokens.value.status !== 'active') return false;
       if (!userTokens.value.access_token) return false;
-
-      // Se token expirou
-      if (isTokenExpired.value) {
-        // Tem refresh_token E endpoint de renovação configurado?
-        if (userTokens.value.refresh_token && renewTokenEndpoint.value) {
-          return true; // ✅ Ainda autenticado, vai tentar renovar
-        }
-        // Não tem como renovar
-        return false; // ❌ Precisa autenticar novamente
-      }
+      if (isTokenExpired.value) return false; // Token expirado = não autenticado
 
       return true;
     });
@@ -930,33 +921,16 @@ export default {
       currentPage.value = 1;
     });
 
-    // Renovar token automaticamente se expirado
-    watch([isTokenExpired, userTokens], async ([expired, tokens]) => {
-      if (isEditing.value) return;
-      if (!expired) return;
-      if (!tokens?.refresh_token) return;
-      if (isRenewingToken.value) return;
-      if (!renewTokenEndpoint.value) return;
-
-      console.log('Token expirado detectado, tentando renovar automaticamente...');
-      const renewed = await renewToken();
-
-      if (!renewed) {
-        // Renovação falhou, redirecionar para autenticação
-        step.value = 'not-authenticated';
-      }
-    }, { immediate: true });
-
     // Atualizar step quando autenticação mudar
     watch(isAuthenticated, (authenticated) => {
       if (isEditing.value) return;
 
-      // Se estava na tela de auth e agora está autenticado, vai para select-period
-      if (step.value === 'not-authenticated' && authenticated) {
+      // Se está autenticado e estava na tela de auth, vai para select-period
+      if (authenticated && step.value === 'not-authenticated') {
         step.value = 'select-period';
       }
 
-      // Se estava em outra tela e perdeu autenticação, volta para auth
+      // Se perdeu autenticação, volta para tela de auth
       if (!authenticated && step.value !== 'not-authenticated') {
         step.value = 'not-authenticated';
       }
