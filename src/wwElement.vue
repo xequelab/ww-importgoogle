@@ -2006,19 +2006,19 @@ export default {
     gap: 12px;
 
     &.alert-success {
-      background-color: #ECFDF5;
-      border: 1px solid #A7F3D0;
+      background-color: #F0FDF4; /* Green-50 */
+      border: 1px solid #BBF7D0; /* Green-200 */
 
       .alert-icon {
-        color: #059669;
+        color: #16A34A; /* Green-600 */
       }
 
       .alert-title {
-        color: #065F46;
+        color: #15803D; /* Green-700 */
       }
 
       .alert-desc {
-        color: #047857;
+        color: #166534; /* Green-800 */
       }
     }
 

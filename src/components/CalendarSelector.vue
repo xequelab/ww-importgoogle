@@ -102,7 +102,7 @@
     <!-- Ações -->
     <div class="actions" :style="actionsStyle">
       <button
-        v-if="temporarySelectedId !== null"
+        v-if="temporarySelectedId !== null && !calendars.find(c => c.id === temporarySelectedId)?.recebe_agendamentos"
         class="btn btn-primary"
         :style="primaryButtonStyle"
         @click="handleConfirmSelection"
@@ -206,13 +206,17 @@ export default {
       return props.calendars.some(cal => cal.recebe_agendamentos);
     });
 
+    const isCalendarActiveInDb = (calendar) => {
+      return calendar.recebe_agendamentos === true;
+    };
+
     const isCalendarActive = (calendar) => {
       // Se há seleção temporária, usa ela
       if (temporarySelectedId.value !== null) {
         return calendar.id === temporarySelectedId.value;
       }
       // Senão, usa o recebe_agendamentos do banco
-      return calendar.recebe_agendamentos === true;
+      return isCalendarActiveInDb(calendar);
     };
 
     // Helper para normalizar o status (pode vir como objeto ou array)
@@ -415,83 +419,7 @@ export default {
       border: `1px solid ${props.styles.borderColor || '#E2E8F0'}`
     }));
 
-    const webhookHeaderStyle = computed(() => ({
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      marginBottom: '16px'
-    }));
 
-    const webhookIconStyle = computed(() => ({
-      width: '24px',
-      height: '24px',
-      color: props.styles.primaryColor || '#081B4E',
-      flexShrink: '0'
-    }));
-
-    const webhookTitleStyle = computed(() => ({
-      fontSize: '16px',
-      fontWeight: '600',
-      color: props.styles.textColor || '#1A202C',
-      margin: '0'
-    }));
-
-    const webhookStatusStyle = computed(() => ({
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      marginBottom: '16px'
-    }));
-
-    const webhookUrlStyle = computed(() => ({
-      fontSize: '12px',
-      fontFamily: 'monospace',
-      color: props.styles.textMutedColor || '#718096',
-      wordBreak: 'break-all'
-    }));
-
-    const webhookActionsStyle = computed(() => ({
-      display: 'flex',
-      justifyContent: 'flex-start'
-    }));
-
-    const getWebhookStatusStyle = (status) => {
-      const colors = {
-        'active': props.styles.successColor || '#38A169',
-        'inactive': props.styles.textMutedColor || '#718096',
-        'error': props.styles.errorColor || '#E53E3E'
-      };
-      return {
-        color: colors[status] || colors.inactive,
-        fontWeight: '600'
-      };
-    };
-
-    const getWebhookMessageStyle = (status) => {
-      const colors = {
-        'error': props.styles.errorColor || '#E53E3E',
-        'active': props.styles.successColor || '#38A169'
-      };
-      return {
-        fontSize: '12px',
-        color: colors[status] || props.styles.textMutedColor || '#718096',
-        marginTop: '4px'
-      };
-    };
-
-    const getWebhookButtonStyle = (status) => {
-      const isDestructive = status === 'active';
-      return {
-        padding: '8px 16px',
-        backgroundColor: isDestructive ? '#FFFFFF' : (props.styles.primaryColor || '#081B4E'),
-        color: isDestructive ? (props.styles.errorColor || '#E53E3E') : '#FFFFFF',
-        fontSize: '14px',
-        fontWeight: '600',
-        borderRadius: '8px',
-        border: isDestructive ? `2px solid ${props.styles.errorColor || '#E53E3E'}` : 'none',
-        cursor: 'pointer'
-      };
-    };
 
     return {
       isLoading,
