@@ -85,6 +85,12 @@ export default {
       label: { en: 'On webhook toggle', pt: 'Ao alternar webhook' },
       event: {},
       default: false
+    },
+    {
+      name: 'revoke-auth',
+      label: { en: 'On revoke authorization', pt: 'Ao revogar autorização' },
+      event: { email: '' },
+      default: false
     }
   ],
   actions: [

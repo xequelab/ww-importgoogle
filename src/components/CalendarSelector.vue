@@ -99,6 +99,15 @@
       </div>
     </div>
 
+    <!-- Legenda de Sincronização (quando ativo) -->
+    <div v-if="hasActiveCalendar && isWebhookSynced" class="sync-info">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+      </svg>
+      <span>Sincronização bidirecional ativa: agendamentos criados aqui são enviados ao Google e eventos do Google são recebidos automaticamente.</span>
+    </div>
+
     <!-- Ações -->
     <div class="actions" :style="actionsStyle">
       <button
@@ -263,6 +272,14 @@ export default {
       
       return calendar.recebe_agendamentos === true && status === 'active';
     };
+
+    // Helper para verificar se há webhook ativo (para mostrar legenda)
+    const isWebhookSynced = computed(() => {
+      const wb = normalizedWebhook.value;
+      if (!wb) return false;
+      const status = wb.status || wb.renewal_status;
+      return status === 'active';
+    });
 
     const handleCalendarClick = (calendar) => {
       if (isChanging.value) return;
@@ -472,6 +489,8 @@ export default {
       hasActiveCalendar,
       isCalendarActive,
       isCalendarSynced,
+      isWebhookSynced,
+      normalizedWebhook,
       temporarySelectedId,
       handleCalendarClick,
       handleConfirmSelection,
@@ -759,6 +778,33 @@ export default {
   opacity: 0.9;
 }
 
+/* Legenda de Sincronização */
+.sync-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(56, 161, 105, 0.08);
+  border-left: 3px solid #38A169;
+  border-radius: 6px;
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #2D3748;
+}
+
+.sync-info svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #38A169;
+  margin-top: 2px;
+}
+
+.sync-info span {
+  flex: 1;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .calendars-list {
@@ -789,6 +835,11 @@ export default {
 
   .webhook-status .status-row span:last-child {
     text-align: left;
+  }
+
+  .webhook-sync-legend {
+    padding: 10px;
+    font-size: 12px;
   }
 }
 
