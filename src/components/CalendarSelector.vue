@@ -436,7 +436,6 @@ export default {
       getWebhookStatusText,
       getWebhookButtonText,
       getWebhookStatusStyle,
-      getWebhookMessageStyle,
       getWebhookButtonStyle,
       containerStyle,
       iconStyle,
