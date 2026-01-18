@@ -50,6 +50,7 @@
             <div class="checklist-body">
               <div class="checklist-label">Autorização Google</div>
               <div v-if="userTokens?.email" class="checklist-value">{{ userTokens.email }}</div>
+              <p class="checklist-desc">O app possui permissão para ler e modificar seus eventos no Google Calendar.</p>
             </div>
           </div>
 
@@ -89,7 +90,9 @@
                     </svg>
                   </button>
                 </div>
+                </div>
               </div>
+              <p class="checklist-desc">Sincronização bidirecional: eventos são atualizados em tempo real entre as plataformas.</p>
             </div>
           </div>
         </div>
@@ -2145,6 +2148,14 @@ export default {
   font-size: 13px;
   margin: 0;
   font-weight: 500;
+}
+
+
+.checklist-desc {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
 }
 
 .checklist-action {
