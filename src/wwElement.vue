@@ -947,6 +947,21 @@ export default {
       }
     }, { immediate: true });
 
+    // Atualizar step quando autenticação mudar
+    watch(isAuthenticated, (authenticated) => {
+      if (isEditing.value) return;
+
+      // Se estava na tela de auth e agora está autenticado, vai para select-period
+      if (step.value === 'not-authenticated' && authenticated) {
+        step.value = 'select-period';
+      }
+
+      // Se estava em outra tela e perdeu autenticação, volta para auth
+      if (!authenticated && step.value !== 'not-authenticated') {
+        step.value = 'not-authenticated';
+      }
+    }, { immediate: true });
+
     return {
       // Estado
       step,

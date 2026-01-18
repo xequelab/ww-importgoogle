@@ -107,6 +107,22 @@ export default {
       }
       /* wwEditor:end */
     },
+    userCalendars: {
+      label: { en: 'User Calendars', pt: 'Calendários do Usuário' },
+      type: 'Array',
+      section: 'settings',
+      bindable: true,
+      defaultValue: [],
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'array',
+        tooltip: 'Coleção de calendários salvos da tabela calendarios_usuario'
+      },
+      propertyHelp: {
+        tooltip: 'Bind a coleção calendarios_usuario filtrada pelo user_id atual. O componente mostrará os calendários disponíveis.'
+      }
+      /* wwEditor:end */
+    },
 
     // ===== CONFIGURAÇÃO =====
     authUrl: {
@@ -144,6 +160,25 @@ export default {
       },
       propertyHelp: {
         tooltip: 'Endpoint que renova o access_token usando o refresh_token'
+      }
+      /* wwEditor:end */
+    },
+    listCalendarsEndpoint: {
+      label: { en: 'List Calendars Endpoint', pt: 'Endpoint Listar Calendários' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: '',
+      options: {
+        placeholder: 'https://seu-projeto.supabase.co/functions/v1/salvar_todos_calendarios'
+      },
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'URL da Edge Function que busca e salva calendários do Google'
+      },
+      propertyHelp: {
+        tooltip: 'Endpoint que lista calendários do Google e salva na tabela calendarios_usuario'
       }
       /* wwEditor:end */
     },
