@@ -76,8 +76,14 @@ export default {
       isAuthenticating.value = true;
       emit('auth-initiated');
 
-      // Redireciona para URL de autenticação
-      window.location.href = props.authUrl;
+      // Abre URL de autenticação em nova aba
+      window.open(props.authUrl, '_blank');
+      // window.location.href = props.authUrl;
+      
+      // Reseta estado de autenticação após breve delay (já que é nova aba)
+      setTimeout(() => {
+        isAuthenticating.value = false;
+      }, 3000);
     };
 
     const containerStyle = {
