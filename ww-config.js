@@ -55,6 +55,30 @@ export default {
       event: {
         message: ''
       }
+    },
+    {
+      name: 'calendar-selected',
+      label: { en: 'On calendar selected', pt: 'Ao selecionar calendário' },
+      event: {
+        calendar: {}
+      },
+      default: false
+    },
+    {
+      name: 'calendars-fetched',
+      label: { en: 'On calendars fetched', pt: 'Ao buscar calendários' },
+      event: {
+        calendars: []
+      },
+      default: false
+    },
+    {
+      name: 'calendars-fetch-error',
+      label: { en: 'On calendars fetch error', pt: 'Ao erro buscar calendários' },
+      event: {
+        error: ''
+      },
+      default: false
     }
   ],
   actions: [
@@ -504,6 +528,66 @@ export default {
       defaultValue: 'Próximos 6 meses',
       options: {
         placeholder: 'Próximos 6 meses'
+      }
+    },
+    titleSelectCalendar: {
+      label: { en: 'Title - Select Calendar', pt: 'Título - Selecionar Calendário' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Selecionar Calendário',
+      options: {
+        placeholder: 'Selecionar Calendário'
+      }
+    },
+    descriptionSelectCalendar: {
+      label: { en: 'Description - Select Calendar', pt: 'Descrição - Selecionar Calendário' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Escolha qual calendário do Google deseja sincronizar com seus agendamentos.',
+      options: {
+        placeholder: 'Escolha qual calendário...'
+      }
+    },
+    labelFetchCalendars: {
+      label: { en: 'Label - Fetch Calendars', pt: 'Label - Buscar Calendários' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Buscar Calendários',
+      options: {
+        placeholder: 'Buscar Calendários'
+      }
+    },
+    labelNoCalendars: {
+      label: { en: 'Label - No Calendars', pt: 'Label - Sem Calendários' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Nenhum calendário encontrado. Clique no botão abaixo para buscar seus calendários do Google.',
+      options: {
+        placeholder: 'Nenhum calendário encontrado...'
+      }
+    },
+    labelLoadingCalendars: {
+      label: { en: 'Label - Loading Calendars', pt: 'Label - Carregando Calendários' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Buscando calendários...',
+      options: {
+        placeholder: 'Buscando calendários...'
+      }
+    },
+    buttonContinueCalendar: {
+      label: { en: 'Button - Continue', pt: 'Botão - Continuar' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Continuar',
+      options: {
+        placeholder: 'Continuar'
       }
     },
 

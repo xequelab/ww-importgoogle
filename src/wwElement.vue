@@ -12,6 +12,22 @@
       @auth-initiated="handleAuthInitiated"
     />
 
+    <!-- STEP 0.5: Seleção de Calendário -->
+    <CalendarSelector
+      v-else-if="step === 'select-calendar'"
+      :calendars="userCalendars"
+      :title="titleSelectCalendar"
+      :description="descriptionSelectCalendar"
+      :loading-text="labelLoadingCalendars"
+      :empty-text="labelNoCalendars"
+      :fetch-button-text="labelFetchCalendars"
+      :continue-button-text="buttonContinueCalendar"
+      :styles="calendarSelectorStyles"
+      @calendar-selected="handleCalendarSelected"
+      @fetch-calendars="handleFetchCalendars"
+      @continue="handleContinueFromCalendar"
+    />
+
     <!-- STEP 1: Seleção de Período -->
     <div v-if="step === 'select-period'" class="step-content">
       <h2 class="step-title" :style="titleStyle">{{ titleStep1 }}</h2>
@@ -205,6 +221,7 @@
 <script>
 import { ref, computed, watch } from 'vue';
 import AuthPrompt from './components/AuthPrompt.vue';
+import CalendarSelector from './components/CalendarSelector.vue';
 import PeriodSelector from './components/PeriodSelector.vue';
 import EventFilters from './components/EventFilters.vue';
 import EventItem from './components/EventItem.vue';
@@ -215,6 +232,7 @@ export default {
   name: 'ImportGoogleCalendar',
   components: {
     AuthPrompt,
+    CalendarSelector,
     PeriodSelector,
     EventFilters,
     EventItem,
@@ -258,6 +276,27 @@ export default {
       return true;
     });
 
+    // ===== Calendários do usuário =====
+    const userCalendars = computed(() => {
+      const calendars = props.content?.userCalendars;
+
+      // Handle WeWeb collection object
+      if (calendars && calendars.data && Array.isArray(calendars.data)) {
+        return calendars.data.filter(cal => cal != null);
+      }
+
+      // Handle direct array binding
+      if (Array.isArray(calendars)) {
+        return calendars;
+      }
+
+      return [];
+    });
+
+    const hasActiveCalendar = computed(() => {
+      return userCalendars.value.some(cal => cal.recebe_agendamentos === true);
+    });
+
     // ===== IDs de eventos já importados =====
     const importedGoogleIds = computed(() => {
       const appointments = props.content?.existingAppointments;
@@ -292,7 +331,13 @@ export default {
     });
 
     // ===== Estado do fluxo =====
-    const step = ref(isAuthenticated.value ? 'select-period' : 'not-authenticated');
+    const getInitialStep = () => {
+      if (!isAuthenticated.value) return 'not-authenticated';
+      if (!hasActiveCalendar.value) return 'select-calendar';
+      return 'select-period';
+    };
+
+    const step = ref(getInitialStep());
     const timeMin = ref(null);
     const timeMax = ref(null);
     const events = ref([]);
@@ -344,6 +389,7 @@ export default {
     const calendarId = computed(() => props.content?.calendarId || 'primary');
     const fetchEventsEndpoint = computed(() => props.content?.fetchEventsEndpoint || '');
     const importEventsEndpoint = computed(() => props.content?.importEventsEndpoint || '');
+    const listCalendarsEndpoint = computed(() => props.content?.listCalendarsEndpoint || '');
     const authToken = computed(() => props.content?.authToken || '');
     const eventsPerPage = computed(() => props.content?.eventsPerPage || 20);
     const preselectBirthdays = computed(() => props.content?.preselectBirthdays !== false);
@@ -353,6 +399,14 @@ export default {
     const descriptionAuth = computed(() => props.content?.descriptionAuth || 'Para importar eventos e criar sincronização automática, conecte sua conta do Google Calendar.');
     const buttonAuth = computed(() => props.content?.buttonAuth || 'Conectar com Google');
     const labelAuthenticating = computed(() => props.content?.labelAuthenticating || 'Autenticando...');
+
+    // Textos - Calendário
+    const titleSelectCalendar = computed(() => props.content?.titleSelectCalendar || 'Selecionar Calendário');
+    const descriptionSelectCalendar = computed(() => props.content?.descriptionSelectCalendar || 'Escolha qual calendário do Google deseja sincronizar com seus agendamentos.');
+    const labelFetchCalendars = computed(() => props.content?.labelFetchCalendars || 'Buscar Calendários');
+    const labelNoCalendars = computed(() => props.content?.labelNoCalendars || 'Nenhum calendário encontrado. Clique no botão abaixo para buscar seus calendários do Google.');
+    const labelLoadingCalendars = computed(() => props.content?.labelLoadingCalendars || 'Buscando calendários...');
+    const buttonContinueCalendar = computed(() => props.content?.buttonContinueCalendar || 'Continuar');
 
     // Textos - Importação
     const titleStep1 = computed(() => props.content?.titleStep1 || 'Selecionar Período');
@@ -518,6 +572,19 @@ export default {
       titleFontSize: props.content?.titleFontSize || '20px',
       baseFontSize: props.content?.baseFontSize || '14px',
       smallFontSize: props.content?.smallFontSize || '12px',
+      buttonPadding: props.content?.buttonPadding || '12px 24px',
+      buttonFontSize: props.content?.buttonFontSize || '14px',
+      buttonFontWeight: props.content?.buttonFontWeight || '600'
+    }));
+
+    const calendarSelectorStyles = computed(() => ({
+      containerPadding: props.content?.containerPadding || '24px',
+      sectionGap: props.content?.sectionGap || '20px',
+      primaryColor: props.content?.primaryColor || '#081B4E',
+      textColor: props.content?.textColor || '#1A202C',
+      textMutedColor: props.content?.textMutedColor || '#718096',
+      titleFontSize: props.content?.titleFontSize || '20px',
+      baseFontSize: props.content?.baseFontSize || '14px',
       buttonPadding: props.content?.buttonPadding || '12px 24px',
       buttonFontSize: props.content?.buttonFontSize || '14px',
       buttonFontWeight: props.content?.buttonFontWeight || '600'
@@ -885,6 +952,69 @@ export default {
       });
     };
 
+    const handleCalendarSelected = (calendar) => {
+      if (isEditing.value) return;
+
+      emit('trigger-event', {
+        name: 'calendar-selected',
+        event: { calendar }
+      });
+    };
+
+    const handleFetchCalendars = async () => {
+      if (isEditing.value) return;
+      if (!listCalendarsEndpoint.value) {
+        console.warn('listCalendarsEndpoint não configurado');
+        return;
+      }
+
+      try {
+        const authHeader = authToken.value
+          ? (authToken.value.startsWith('Bearer ')
+              ? authToken.value
+              : `Bearer ${authToken.value}`)
+          : null;
+
+        const response = await fetch(listCalendarsEndpoint.value, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authHeader ? { 'Authorization': authHeader } : {})
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Erro ao buscar calendários');
+        }
+
+        emit('trigger-event', {
+          name: 'calendars-fetched',
+          event: {
+            calendars: data.calendars || []
+          }
+        });
+
+      } catch (error) {
+        console.error('Erro ao buscar calendários:', error);
+
+        emit('trigger-event', {
+          name: 'calendars-fetch-error',
+          event: {
+            error: error.message
+          }
+        });
+      }
+    };
+
+    const handleContinueFromCalendar = () => {
+      if (isEditing.value) return;
+      if (!hasActiveCalendar.value) return;
+
+      step.value = 'select-period';
+    };
+
     const handleClose = () => {
       if (isEditing.value) return;
 
@@ -921,18 +1051,25 @@ export default {
       currentPage.value = 1;
     });
 
-    // Atualizar step quando autenticação mudar
-    watch(isAuthenticated, (authenticated) => {
+    // Atualizar step quando autenticação ou calendário mudar
+    watch([isAuthenticated, hasActiveCalendar], ([authenticated, hasCalendar]) => {
       if (isEditing.value) return;
 
-      // Se está autenticado e estava na tela de auth, vai para select-period
-      if (authenticated && step.value === 'not-authenticated') {
-        step.value = 'select-period';
-      }
-
-      // Se perdeu autenticação, volta para tela de auth
+      // Não autenticado → tela de auth
       if (!authenticated && step.value !== 'not-authenticated') {
         step.value = 'not-authenticated';
+        return;
+      }
+
+      // Autenticado mas sem calendário → tela de seleção de calendário
+      if (authenticated && !hasCalendar && step.value === 'not-authenticated') {
+        step.value = 'select-calendar';
+        return;
+      }
+
+      // Autenticado com calendário → tela de seleção de período
+      if (authenticated && hasCalendar && (step.value === 'not-authenticated' || step.value === 'select-calendar')) {
+        step.value = 'select-period';
       }
     }, { immediate: true });
 
@@ -952,6 +1089,8 @@ export default {
 
       // Computed
       importedGoogleIds,
+      userCalendars,
+      hasActiveCalendar,
       filteredEvents,
       paginatedEvents,
       totalPages,
@@ -972,6 +1111,14 @@ export default {
       descriptionAuth,
       buttonAuth,
       labelAuthenticating,
+
+      // Textos - Calendário
+      titleSelectCalendar,
+      descriptionSelectCalendar,
+      labelFetchCalendars,
+      labelNoCalendars,
+      labelLoadingCalendars,
+      buttonContinueCalendar,
 
       // Textos - Importação
       titleStep1,
@@ -1014,9 +1161,13 @@ export default {
       badgeColors,
       paginationStyles,
       authPromptStyles,
+      calendarSelectorStyles,
 
       // Métodos
       handleAuthInitiated,
+      handleCalendarSelected,
+      handleFetchCalendars,
+      handleContinueFromCalendar,
       renewToken,
       fetchEvents,
       importEvents,
