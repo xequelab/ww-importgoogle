@@ -27,13 +27,13 @@
         v-for="calendar in calendars"
         :key="calendar.id"
         class="calendar-item"
-        :class="{ 'is-active': calendar.recebe_agendamentos }"
+        :class="{ 'is-active': isCalendarActive(calendar) }"
         @click="handleCalendarClick(calendar)"
       >
         <div class="calendar-radio">
           <input
             type="radio"
-            :checked="calendar.recebe_agendamentos"
+            :checked="isCalendarActive(calendar)"
             :disabled="isChanging"
             tabindex="-1"
           />
@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <div v-if="calendar.recebe_agendamentos" class="sync-badge">
+        <div v-if="isCalendarActive(calendar)" class="sync-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
@@ -96,7 +96,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 export default {
   name: 'CalendarSelector',
@@ -138,15 +138,37 @@ export default {
   setup(props, { emit }) {
     const isLoading = ref(false);
     const isChanging = ref(false);
+    const temporarySelectedId = ref(null);
 
     const hasActiveCalendar = computed(() => {
       return props.calendars.some(cal => cal.recebe_agendamentos);
     });
 
+    const isCalendarActive = (calendar) => {
+      // Se há seleção temporária, usa ela
+      if (temporarySelectedId.value !== null) {
+        return calendar.id === temporarySelectedId.value;
+      }
+      // Senão, usa o recebe_agendamentos do banco
+      return calendar.recebe_agendamentos === true;
+    };
+
     const handleCalendarClick = (calendar) => {
       if (isChanging.value) return;
+
+      // Marca como selecionado temporariamente
+      temporarySelectedId.value = calendar.id;
+
       emit('calendar-selected', calendar);
     };
+
+    // Watch para limpar seleção temporária quando o banco atualizar
+    watch(() => props.calendars, (newCalendars) => {
+      // Se algum calendário agora tem recebe_agendamentos true, limpa a seleção temporária
+      if (newCalendars.some(cal => cal.recebe_agendamentos === true)) {
+        temporarySelectedId.value = null;
+      }
+    }, { deep: true });
 
     const handleFetchCalendars = () => {
       if (isLoading.value) return;
@@ -239,6 +261,7 @@ export default {
       isLoading,
       isChanging,
       hasActiveCalendar,
+      isCalendarActive,
       handleCalendarClick,
       handleFetchCalendars,
       handleContinue,

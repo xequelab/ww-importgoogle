@@ -348,6 +348,7 @@ export default {
     const successCount = ref(0);
     const currentPage = ref(1);
     const isRenewingToken = ref(false);
+    const temporarySelectedCalendar = ref(null);
 
     // ===== Variáveis expostas =====
     const { value: currentStep, setValue: setCurrentStep } = wwLib.wwVariable.useComponentVariable({
@@ -395,6 +396,11 @@ export default {
 
     // Computed para o calendário ativo
     const activeCalendar = computed(() => {
+      // Prioriza seleção temporária (antes do banco atualizar)
+      if (temporarySelectedCalendar.value) {
+        return temporarySelectedCalendar.value;
+      }
+      // Senão, busca o calendário com recebe_agendamentos true
       return userCalendars.value.find(cal => cal.recebe_agendamentos === true) || null;
     });
 
@@ -410,6 +416,18 @@ export default {
         setSelectedCalendarObject(null);
       }
     }, { immediate: true });
+
+    // Limpar seleção temporária quando o banco atualizar
+    watch(userCalendars, (newCalendars) => {
+      if (temporarySelectedCalendar.value) {
+        // Se o calendário temporário agora tem recebe_agendamentos true, limpa
+        const temp = temporarySelectedCalendar.value;
+        const updated = newCalendars.find(cal => cal.id === temp.id);
+        if (updated && updated.recebe_agendamentos === true) {
+          temporarySelectedCalendar.value = null;
+        }
+      }
+    }, { deep: true });
 
     // Sincronizar step com variável exposta
     watch(step, (newStep) => {
@@ -994,6 +1012,9 @@ export default {
 
     const handleCalendarSelected = (calendar) => {
       if (isEditing.value) return;
+
+      // Marca calendário como temporariamente selecionado
+      temporarySelectedCalendar.value = calendar;
 
       emit('trigger-event', {
         name: 'calendar-selected',
