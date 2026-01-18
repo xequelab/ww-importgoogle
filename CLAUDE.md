@@ -8,20 +8,24 @@ keywords: google, calendar, import, events, agenda, psicólogos, agendamento
 
 ## Propósito
 
-Componente de importação de eventos do Google Calendar para aplicação de agendamentos de psicólogos. Permite ao usuário:
+Componente completo de integração com Google Calendar para aplicação de agendamentos de psicólogos. Permite ao usuário:
 
-1. Selecionar um período de tempo (com atalhos rápidos)
-2. Visualizar eventos encontrados no calendário
-3. Filtrar e selecionar quais eventos deseja importar
-4. Confirmar importação dos eventos selecionados
+1. **Conectar** - Autorizar acesso ao Google Calendar
+2. **Selecionar Agenda** - Escolher qual calendário sincronizar
+3. **Importar Eventos** - Selecionar período, visualizar e importar eventos
+
+Interface de abas (tabs) facilita navegação entre as funcionalidades principais.
 
 ## Estrutura de Arquivos
 
 ```
 ww-importgooglecalendar/
 ├── src/
-│   ├── wwElement.vue              # Componente principal
+│   ├── wwElement.vue              # Componente principal com sistema de abas
 │   └── components/
+│       ├── TabNavigation.vue      # Navegação por abas
+│       ├── AuthPrompt.vue         # Prompt de autenticação
+│       ├── CalendarSelector.vue   # Seleção de calendário + webhook
 │       ├── EventItem.vue          # Item individual de evento
 │       ├── EventFilters.vue       # Filtros de busca e tipo
 │       ├── PeriodSelector.vue     # Seletor de período com atalhos
@@ -33,7 +37,31 @@ ww-importgooglecalendar/
 
 ## Fluxo do Componente
 
-### Steps (Estados)
+### Sistema de Abas
+
+O componente possui 3 abas principais:
+
+#### Aba 1: Conexão
+- **Não autenticado**: Mostra prompt para conectar com Google
+- **Autenticado**: Mostra status da integração
+  - **Autorização Google**: Status da conta conectada (email, expiração)
+  - **Agenda Selecionada**: Qual calendário está ativo para sincronização
+
+#### Aba 2: Calendário
+- Lista de calendários do usuário (vindos do Google)
+- Seleção com radio buttons
+- Badge "Sincronizado" no calendário ativo
+- Botão "Confirmar Seleção" para persistir escolha
+- Seção de webhook (gerenciar sincronização automática)
+
+#### Aba 3: Importar
+- Seleção de período (com atalhos rápidos)
+- Busca e listagem de eventos
+- Filtros por tipo e busca textual
+- Seleção de eventos para importar
+- Indicador visual de eventos já importados
+
+### Steps Internos (Aba de Importação)
 
 1. **select-period** - Usuário seleciona período de busca
 2. **loading** - Buscando eventos da API

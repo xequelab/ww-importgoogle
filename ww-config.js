@@ -693,6 +693,118 @@ export default {
       /* wwEditor:end */
     },
 
+    // ===== TEXTOS - STATUS DE CONEXÃO =====
+    labelConnectionTitle: {
+      label: { en: 'Connection - Title', pt: 'Conexão - Título' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Status da Conexão',
+      options: {
+        placeholder: 'Status da Conexão'
+      }
+    },
+    labelConnectionDescription: {
+      label: { en: 'Connection - Description', pt: 'Conexão - Descrição' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Verifique o status da sua integração com o Google Calendar',
+      options: {
+        placeholder: 'Verifique o status da sua integração com o Google Calendar'
+      }
+    },
+    labelAuthorizationTitle: {
+      label: { en: 'Connection - Authorization Title', pt: 'Conexão - Título Autorização' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Autorização Google',
+      options: {
+        placeholder: 'Autorização Google'
+      }
+    },
+    labelConnected: {
+      label: { en: 'Connection - Connected Label', pt: 'Conexão - Label Conectado' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Conectado',
+      options: {
+        placeholder: 'Conectado'
+      }
+    },
+    labelAccount: {
+      label: { en: 'Connection - Account Label', pt: 'Conexão - Label Conta' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Conta',
+      options: {
+        placeholder: 'Conta'
+      }
+    },
+    labelExpiresAt: {
+      label: { en: 'Connection - Expires At Label', pt: 'Conexão - Label Expira em' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Expira em',
+      options: {
+        placeholder: 'Expira em'
+      }
+    },
+    labelCalendarTitle: {
+      label: { en: 'Connection - Calendar Title', pt: 'Conexão - Título Agenda' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Agenda Selecionada',
+      options: {
+        placeholder: 'Agenda Selecionada'
+      }
+    },
+    labelCalendarName: {
+      label: { en: 'Connection - Calendar Name Label', pt: 'Conexão - Label Nome Agenda' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Agenda',
+      options: {
+        placeholder: 'Agenda'
+      }
+    },
+    labelCalendarActive: {
+      label: { en: 'Connection - Calendar Active', pt: 'Conexão - Agenda Ativa' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Ativa',
+      options: {
+        placeholder: 'Ativa'
+      }
+    },
+    labelCalendarNotSelected: {
+      label: { en: 'Connection - Calendar Not Selected', pt: 'Conexão - Agenda Não Selecionada' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Nenhuma agenda selecionada',
+      options: {
+        placeholder: 'Nenhuma agenda selecionada'
+      }
+    },
+    labelSelectCalendarButton: {
+      label: { en: 'Connection - Select Calendar Button', pt: 'Conexão - Botão Selecionar Agenda' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Selecionar Agenda',
+      options: {
+        placeholder: 'Selecionar Agenda'
+      }
+    },
+
     // ===== CORES PRINCIPAIS =====
     primaryColor: {
       label: { en: 'Primary Color', pt: 'Cor Primária' },

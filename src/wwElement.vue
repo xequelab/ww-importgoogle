@@ -21,10 +21,10 @@
         @auth-initiated="handleAuthInitiated"
       />
 
-      <!-- Status de Conexão Completo (quando já está autenticado) -->
+      <!-- Status de Conexão Simplificado -->
       <div v-else class="connection-status">
-        <h2 class="step-title" :style="titleStyle">Status da Integração</h2>
-        <p :style="mutedTextStyle">Verifique o status da sua conexão com o Google Calendar.</p>
+        <h2 class="step-title" :style="titleStyle">{{ labelConnectionTitle }}</h2>
+        <p :style="mutedTextStyle">{{ labelConnectionDescription }}</p>
 
         <!-- Item 1: Autorização Google -->
         <div class="status-item" :style="statusItemStyle">
@@ -36,69 +36,66 @@
               </svg>
             </div>
             <div class="status-item-content">
-              <h3 class="status-item-title">Autorização Google</h3>
+              <h3 class="status-item-title">{{ labelAuthorizationTitle }}</h3>
               <p class="status-item-status" :style="{ color: successColor, fontWeight: '600' }">
-                ✓ Conectado
+                ✓ {{ labelConnected }}
               </p>
             </div>
           </div>
           <div class="status-item-details" :style="statusDetailsStyle">
             <div class="detail-row">
-              <span :style="mutedTextStyle">Conta:</span>
+              <span :style="mutedTextStyle">{{ labelAccount }}:</span>
               <span>{{ userTokens?.email || 'N/A' }}</span>
             </div>
             <div class="detail-row" v-if="userTokens && userTokens.expires_at">
-              <span :style="mutedTextStyle">Expira em:</span>
+              <span :style="mutedTextStyle">{{ labelExpiresAt }}:</span>
               <span>{{ formatExpiryDate(userTokens.expires_at) }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Item 2: Sincronização Ativa -->
+        <!-- Item 2: Agenda Selecionada -->
         <div class="status-item" :style="statusItemStyle">
           <div class="status-item-header">
-            <div class="status-item-icon" :style="getStatusIconStyle(isSyncActive)">
-              <svg v-if="isSyncActive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <polyline points="1 20 1 14 7 14"></polyline>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            <div class="status-item-icon" :style="getStatusIconStyle(hasActiveCalendar)">
+              <svg v-if="hasActiveCalendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+                <polyline points="11 14 12 15 15 12"></polyline>
               </svg>
               <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
               </svg>
             </div>
             <div class="status-item-content">
-              <h3 class="status-item-title">Sincronização Automática</h3>
-              <p class="status-item-status" :style="getSyncStatusStyle">
-                {{ syncStatusText }}
+              <h3 class="status-item-title">{{ labelCalendarTitle }}</h3>
+              <p class="status-item-status" :style="getCalendarStatusStyle">
+                {{ calendarStatusText }}
               </p>
             </div>
           </div>
-          <div v-if="activeCalendar || webhookStatus" class="status-item-details" :style="statusDetailsStyle">
-            <div v-if="activeCalendar" class="detail-row">
-              <span :style="mutedTextStyle">Calendário:</span>
+          <div v-if="activeCalendar" class="status-item-details" :style="statusDetailsStyle">
+            <div class="detail-row">
+              <span :style="mutedTextStyle">{{ labelCalendarName }}:</span>
               <span>{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</span>
             </div>
-            <div v-if="webhookStatus && webhookStatus.status" class="detail-row">
-              <span :style="mutedTextStyle">Webhook:</span>
-              <span :style="getWebhookStatusTextStyle(webhookStatus.status)">
-                {{ getWebhookStatusLabel(webhookStatus.status) }}
-              </span>
-            </div>
-            <div v-if="webhookStatus && webhookStatus.lastSync" class="detail-row">
-              <span :style="mutedTextStyle">Última sincronização:</span>
-              <span>{{ webhookStatus.lastSync }}</span>
+            <div v-if="activeCalendar.calendar_id" class="detail-row">
+              <span :style="mutedTextStyle">ID:</span>
+              <span :style="{ fontSize: '12px', wordBreak: 'break-all' }">{{ activeCalendar.calendar_id }}</span>
             </div>
           </div>
-          <div v-if="!isSyncActive" class="status-item-action">
+          <div v-if="!hasActiveCalendar" class="status-item-action">
             <button
               class="btn btn-primary"
               :style="{ ...primaryButtonStyle, marginTop: '12px' }"
               @click="goToCalendarTab"
             >
-              {{ labelConfigureSync }}
+              {{ labelSelectCalendarButton }}
             </button>
           </div>
         </div>
@@ -623,35 +620,40 @@ export default {
     // Webhook Status (vindo de props bindáveis)
     const webhookStatus = computed(() => props.content?.webhookStatus || null);
 
-    // ===== Status de Sincronização =====
-    const isSyncActive = computed(() => {
-      // Sincronização está ativa se:
-      // 1. Tem calendário selecionado (recebe_agendamentos = true)
-      // 2. E tem webhook ativo
-      const hasCalendar = hasActiveCalendar.value;
-      const hasWebhook = webhookStatus.value && webhookStatus.value.status === 'active';
-      return hasCalendar && hasWebhook;
+    // ===== Textos - Status de Conexão =====
+    const labelConnectionTitle = computed(() => props.content?.labelConnectionTitle || 'Status da Conexão');
+    const labelConnectionDescription = computed(() => props.content?.labelConnectionDescription || 'Verifique o status da sua integração com o Google Calendar');
+    const labelAuthorizationTitle = computed(() => props.content?.labelAuthorizationTitle || 'Autorização Google');
+    const labelConnected = computed(() => props.content?.labelConnected || 'Conectado');
+    const labelAccount = computed(() => props.content?.labelAccount || 'Conta');
+    const labelExpiresAt = computed(() => props.content?.labelExpiresAt || 'Expira em');
+    const labelCalendarTitle = computed(() => props.content?.labelCalendarTitle || 'Agenda Selecionada');
+    const labelCalendarName = computed(() => props.content?.labelCalendarName || 'Agenda');
+    const labelCalendarActive = computed(() => props.content?.labelCalendarActive || 'Ativa');
+    const labelCalendarNotSelected = computed(() => props.content?.labelCalendarNotSelected || 'Nenhuma agenda selecionada');
+    const labelSelectCalendarButton = computed(() => props.content?.labelSelectCalendarButton || 'Selecionar Agenda');
+
+    // ===== Status de Calendário =====
+    const calendarStatusText = computed(() => {
+      if (hasActiveCalendar.value) {
+        return `✓ ${labelCalendarActive.value}`;
+      }
+      return `⚠ ${labelCalendarNotSelected.value}`;
     });
 
-    const syncStatusText = computed(() => {
-      if (isSyncActive.value) {
-        return '✓ Ativa';
+    const getCalendarStatusStyle = computed(() => {
+      if (hasActiveCalendar.value) {
+        return {
+          color: successColor.value,
+          fontWeight: '600'
+        };
       }
-      if (hasActiveCalendar.value && (!webhookStatus.value || webhookStatus.value.status !== 'active')) {
-        return '⚠ Webhook inativo';
-      }
-      if (!hasActiveCalendar.value) {
-        return '⚠ Calendário não configurado';
-      }
-      return '⚠ Não configurada';
+      return {
+        color: props.content?.errorColor || '#E53E3E',
+        fontWeight: '600'
+      };
     });
 
-    const getSyncStatusStyle = computed(() => {
-      if (isSyncActive.value) {
-        return { color: props.content?.successColor || '#38A169', fontWeight: '600' };
-      }
-      return { color: props.content?.errorColor || '#E53E3E', fontWeight: '600' };
-    });
 
     // ===== Sistema de Abas =====
     const tabs = computed(() => [
@@ -1554,8 +1556,22 @@ export default {
       buttonWebhookPause,
       buttonWebhookActivate,
       buttonWebhookRetry,
-      labelConfigureSync,
       webhookStatus,
+
+      // Textos - Status de Conexão
+      labelConnectionTitle,
+      labelConnectionDescription,
+      labelAuthorizationTitle,
+      labelConnected,
+      labelAccount,
+      labelExpiresAt,
+      labelCalendarTitle,
+      labelCalendarName,
+      labelCalendarActive,
+      labelCalendarNotSelected,
+      labelSelectCalendarButton,
+      calendarStatusText,
+      getCalendarStatusStyle,
 
       // Textos - Importação
       titleStep1,
