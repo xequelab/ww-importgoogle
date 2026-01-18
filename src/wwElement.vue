@@ -630,8 +630,19 @@ export default {
     const labelConnectionComplete = computed(() => props.content?.labelConnectionComplete || '✓ Integração configurada com sucesso! Você já pode importar eventos.');
 
     // ===== Status de Webhook e Conexão =====
+    // Helper para normalizar o status (pode vir como objeto ou array)
+    const normalizedWebhook = computed(() => {
+      const data = webhookStatus.value;
+      if (Array.isArray(data)) {
+        return data.length > 0 ? data[0] : null;
+      }
+      return data;
+    });
+
     const isWebhookActive = computed(() => {
-      const status = webhookStatus.value?.status || webhookStatus.value?.renewal_status;
+      const wb = normalizedWebhook.value;
+      if (!wb) return false;
+      const status = wb.status || wb.renewal_status;
       return status === 'active';
     });
 
