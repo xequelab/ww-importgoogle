@@ -129,7 +129,7 @@
         @click="handleConfirmSelection"
         :disabled="isChanging"
       >
-        Reativar Sincronização
+        Ativar Sincronização
       </button>
     </div>
     <!-- Modal de Confirmação -->
