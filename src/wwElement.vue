@@ -241,17 +241,27 @@ export default {
   setup(props, { emit }) {
     // ===== Autenticação =====
     const userTokens = computed(() => props.content?.userTokens || null);
+    const isTokenExpired = computed(() => {
+      if (!userTokens.value?.expires_at) return false;
+      const expiresAt = new Date(userTokens.value.expires_at);
+      return expiresAt <= new Date();
+    });
+
     const isAuthenticated = computed(() => {
       if (!userTokens.value) return false;
       if (userTokens.value.status !== 'active') return false;
+      if (!userTokens.value.access_token) return false;
 
-      // Verificar se token não expirou
-      if (userTokens.value.expires_at) {
-        const expiresAt = new Date(userTokens.value.expires_at);
-        if (expiresAt <= new Date()) return false;
+      // Se expirou mas tem refresh_token, considera autenticado
+      // (vamos tentar renovar automaticamente)
+      if (isTokenExpired.value && userTokens.value.refresh_token) {
+        return true; // Ainda autenticado, mas precisa renovar
       }
 
-      return Boolean(userTokens.value.access_token);
+      // Se expirou e não tem refresh_token, não autenticado
+      if (isTokenExpired.value) return false;
+
+      return true;
     });
 
     // ===== IDs de eventos já importados =====
@@ -298,6 +308,7 @@ export default {
     const errorMessage = ref('');
     const successCount = ref(0);
     const currentPage = ref(1);
+    const isRenewingToken = ref(false);
 
     // ===== Variáveis expostas =====
     const { value: currentStep, setValue: setCurrentStep } = wwLib.wwVariable.useComponentVariable({
@@ -336,6 +347,7 @@ export default {
 
     // ===== Props computadas =====
     const authUrl = computed(() => props.content?.authUrl || '');
+    const renewTokenEndpoint = computed(() => props.content?.renewTokenEndpoint || '');
     const calendarId = computed(() => props.content?.calendarId || 'primary');
     const fetchEventsEndpoint = computed(() => props.content?.fetchEventsEndpoint || '');
     const importEventsEndpoint = computed(() => props.content?.importEventsEndpoint || '');
@@ -652,6 +664,57 @@ export default {
     });
 
     // ===== Métodos =====
+    const renewToken = async () => {
+      if (isEditing.value) return false;
+      if (!renewTokenEndpoint.value) {
+        console.warn('renewTokenEndpoint não configurado');
+        return false;
+      }
+      if (isRenewingToken.value) return false;
+
+      isRenewingToken.value = true;
+
+      try {
+        const response = await fetch(renewTokenEndpoint.value, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken.value ? { 'Authorization': `Bearer ${authToken.value}` } : {})
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Erro ao renovar token');
+        }
+
+        // Emitir evento de sucesso
+        emit('trigger-event', {
+          name: 'token-renewed',
+          event: {
+            expires_at: data.data.expires_at
+          }
+        });
+
+        return true;
+
+      } catch (error) {
+        console.error('Erro ao renovar token:', error);
+
+        emit('trigger-event', {
+          name: 'token-renewal-failed',
+          event: {
+            error: error.message
+          }
+        });
+
+        return false;
+      } finally {
+        isRenewingToken.value = false;
+      }
+    };
+
     const fetchEvents = async () => {
       if (isEditing.value) return;
       if (!canFetch.value) return;
@@ -858,6 +921,23 @@ export default {
       currentPage.value = 1;
     });
 
+    // Renovar token automaticamente se expirado
+    watch([isTokenExpired, userTokens], async ([expired, tokens]) => {
+      if (isEditing.value) return;
+      if (!expired) return;
+      if (!tokens?.refresh_token) return;
+      if (isRenewingToken.value) return;
+      if (!renewTokenEndpoint.value) return;
+
+      console.log('Token expirado detectado, tentando renovar automaticamente...');
+      const renewed = await renewToken();
+
+      if (!renewed) {
+        // Renovação falhou, redirecionar para autenticação
+        step.value = 'not-authenticated';
+      }
+    }, { immediate: true });
+
     return {
       // Estado
       step,
@@ -939,6 +1019,7 @@ export default {
 
       // Métodos
       handleAuthInitiated,
+      renewToken,
       fetchEvents,
       importEvents,
       toggleEventSelection,

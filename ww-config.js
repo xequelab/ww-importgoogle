@@ -17,6 +17,18 @@ export default {
       default: false
     },
     {
+      name: 'token-renewed',
+      label: { en: 'On token renewed', pt: 'Ao renovar token' },
+      event: { expires_at: '' },
+      default: false
+    },
+    {
+      name: 'token-renewal-failed',
+      label: { en: 'On token renewal failed', pt: 'Ao falhar renovação' },
+      event: { error: '' },
+      default: false
+    },
+    {
       name: 'close',
       label: { en: 'On close', pt: 'Ao fechar' },
       event: {},
@@ -113,6 +125,25 @@ export default {
       },
       propertyHelp: {
         tooltip: 'Endpoint que redireciona o usuário para autenticação OAuth do Google e salva os tokens'
+      }
+      /* wwEditor:end */
+    },
+    renewTokenEndpoint: {
+      label: { en: 'Renew Token Endpoint', pt: 'Endpoint Renovar Token' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: '',
+      options: {
+        placeholder: 'https://seu-projeto.supabase.co/functions/v1/renovar-token-google'
+      },
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'URL da Edge Function para renovar tokens OAuth expirados'
+      },
+      propertyHelp: {
+        tooltip: 'Endpoint que renova o access_token usando o refresh_token'
       }
       /* wwEditor:end */
     },
