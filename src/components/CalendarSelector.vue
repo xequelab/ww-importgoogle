@@ -285,6 +285,12 @@ export default {
     };
 
     const getWebhookStatusText = (status) => {
+      // Se status vier undefined (ex: passando objeto inteiro sem extrair status)
+      // tenta extrair do normalizedWebhook se não foi passado argumento
+      if (!status && normalizedWebhook.value) {
+        status = normalizedWebhook.value?.status || normalizedWebhook.value?.renewal_status;
+      }
+
       const statusMap = {
         'active': '✓ Ativo',
         'inactive': 'Inativo',
@@ -293,7 +299,36 @@ export default {
       return statusMap[status] || 'Desconhecido';
     };
 
+    const getWebhookStatusStyle = (status) => {
+      if (!status && normalizedWebhook.value) {
+        status = normalizedWebhook.value?.status || normalizedWebhook.value?.renewal_status;
+      }
+
+      const valid = status === 'active';
+      return {
+        backgroundColor: valid ? '#C6F6D5' : '#FED7D7',
+        color: valid ? '#22543D' : '#822727',
+      };
+    };
+
+    const getWebhookButtonStyle = (status) => {
+      if (!status && normalizedWebhook.value) {
+        status = normalizedWebhook.value?.status || normalizedWebhook.value?.renewal_status;
+      }
+
+      const isActive = status === 'active';
+      return {
+        backgroundColor: isActive ? '#EDF2F7' : '#2B6CB0',
+        color: isActive ? '#2D3748' : '#FFFFFF',
+        border: isActive ? '1px solid #CBD5E0' : 'none'
+      };
+    };
+
     const getWebhookButtonText = (status) => {
+      if (!status && normalizedWebhook.value) {
+        status = normalizedWebhook.value?.status || normalizedWebhook.value?.renewal_status;
+      }
+
       if (status === 'active') return props.webhookButtonActive;
       if (status === 'error') return props.webhookButtonRetry;
       return props.webhookButtonInactive;
