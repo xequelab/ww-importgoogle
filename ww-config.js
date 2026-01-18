@@ -11,6 +11,12 @@ export default {
   },
   triggerEvents: [
     {
+      name: 'auth-initiated',
+      label: { en: 'On auth initiated', pt: 'Ao iniciar autenticação' },
+      event: {},
+      default: false
+    },
+    {
       name: 'close',
       label: { en: 'On close', pt: 'Ao fechar' },
       event: {},
@@ -73,8 +79,43 @@ export default {
       }
       /* wwEditor:end */
     },
+    userTokens: {
+      label: { en: 'User Tokens', pt: 'Tokens do Usuário' },
+      type: 'Object',
+      section: 'settings',
+      bindable: true,
+      defaultValue: null,
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'object',
+        tooltip: 'Objeto com tokens OAuth do Google (access_token, refresh_token, expires_at, status)'
+      },
+      propertyHelp: {
+        tooltip: 'Tokens de autenticação OAuth do Google Calendar salvos na tabela user_tokens'
+      }
+      /* wwEditor:end */
+    },
 
     // ===== CONFIGURAÇÃO =====
+    authUrl: {
+      label: { en: 'Auth URL', pt: 'URL de Autenticação' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: '',
+      options: {
+        placeholder: 'https://seu-projeto.supabase.co/functions/v1/google-oauth'
+      },
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'URL completa para iniciar OAuth com Google Calendar'
+      },
+      propertyHelp: {
+        tooltip: 'Endpoint que redireciona o usuário para autenticação OAuth do Google e salva os tokens'
+      }
+      /* wwEditor:end */
+    },
     calendarId: {
       label: { en: 'Calendar ID', pt: 'ID do Calendário' },
       type: 'Text',

@@ -1,5 +1,17 @@
 <template>
   <div class="import-google-calendar" :style="containerStyle">
+    <!-- STEP 0: Não Autenticado -->
+    <AuthPrompt
+      v-if="step === 'not-authenticated'"
+      :auth-url="authUrl"
+      :title="titleAuth"
+      :description="descriptionAuth"
+      :button-text="buttonAuth"
+      :authenticating-text="labelAuthenticating"
+      :styles="authPromptStyles"
+      @auth-initiated="handleAuthInitiated"
+    />
+
     <!-- STEP 1: Seleção de Período -->
     <div v-if="step === 'select-period'" class="step-content">
       <h2 class="step-title" :style="titleStyle">{{ titleStep1 }}</h2>
@@ -192,6 +204,7 @@
 
 <script>
 import { ref, computed, watch } from 'vue';
+import AuthPrompt from './components/AuthPrompt.vue';
 import PeriodSelector from './components/PeriodSelector.vue';
 import EventFilters from './components/EventFilters.vue';
 import EventItem from './components/EventItem.vue';
@@ -201,6 +214,7 @@ import Pagination from './components/Pagination.vue';
 export default {
   name: 'ImportGoogleCalendar',
   components: {
+    AuthPrompt,
     PeriodSelector,
     EventFilters,
     EventItem,
@@ -225,6 +239,21 @@ export default {
   },
   emits: ['trigger-event'],
   setup(props, { emit }) {
+    // ===== Autenticação =====
+    const userTokens = computed(() => props.content?.userTokens || null);
+    const isAuthenticated = computed(() => {
+      if (!userTokens.value) return false;
+      if (userTokens.value.status !== 'active') return false;
+
+      // Verificar se token não expirou
+      if (userTokens.value.expires_at) {
+        const expiresAt = new Date(userTokens.value.expires_at);
+        if (expiresAt <= new Date()) return false;
+      }
+
+      return Boolean(userTokens.value.access_token);
+    });
+
     // ===== IDs de eventos já importados =====
     const importedGoogleIds = computed(() => {
       const appointments = props.content?.existingAppointments;
@@ -259,7 +288,7 @@ export default {
     });
 
     // ===== Estado do fluxo =====
-    const step = ref('select-period');
+    const step = ref(isAuthenticated.value ? 'select-period' : 'not-authenticated');
     const timeMin = ref(null);
     const timeMax = ref(null);
     const events = ref([]);
@@ -306,6 +335,7 @@ export default {
     }, { deep: true });
 
     // ===== Props computadas =====
+    const authUrl = computed(() => props.content?.authUrl || '');
     const calendarId = computed(() => props.content?.calendarId || 'primary');
     const fetchEventsEndpoint = computed(() => props.content?.fetchEventsEndpoint || '');
     const importEventsEndpoint = computed(() => props.content?.importEventsEndpoint || '');
@@ -313,7 +343,13 @@ export default {
     const eventsPerPage = computed(() => props.content?.eventsPerPage || 20);
     const preselectBirthdays = computed(() => props.content?.preselectBirthdays !== false);
 
-    // Textos
+    // Textos - Autenticação
+    const titleAuth = computed(() => props.content?.titleAuth || 'Conectar Google Calendar');
+    const descriptionAuth = computed(() => props.content?.descriptionAuth || 'Para importar eventos e criar sincronização automática, conecte sua conta do Google Calendar.');
+    const buttonAuth = computed(() => props.content?.buttonAuth || 'Conectar com Google');
+    const labelAuthenticating = computed(() => props.content?.labelAuthenticating || 'Autenticando...');
+
+    // Textos - Importação
     const titleStep1 = computed(() => props.content?.titleStep1 || 'Selecionar Período');
     const titleStep3 = computed(() => props.content?.titleStep3 || 'Selecionar Eventos');
     const titleSuccess = computed(() => props.content?.titleSuccess || 'Importação Concluída');
@@ -466,6 +502,20 @@ export default {
       borderColor: props.content?.borderColor || '#E2E8F0',
       textColor: props.content?.textColor || '#1A202C',
       fontSize: props.content?.smallFontSize || '12px'
+    }));
+
+    const authPromptStyles = computed(() => ({
+      containerPadding: props.content?.containerPadding || '24px',
+      primaryColor: props.content?.primaryColor || '#081B4E',
+      textColor: props.content?.textColor || '#1A202C',
+      textMutedColor: props.content?.textMutedColor || '#718096',
+      errorColor: props.content?.errorColor || '#E53E3E',
+      titleFontSize: props.content?.titleFontSize || '20px',
+      baseFontSize: props.content?.baseFontSize || '14px',
+      smallFontSize: props.content?.smallFontSize || '12px',
+      buttonPadding: props.content?.buttonPadding || '12px 24px',
+      buttonFontSize: props.content?.buttonFontSize || '14px',
+      buttonFontWeight: props.content?.buttonFontWeight || '600'
     }));
 
     // ===== Computed para eventos =====
@@ -763,6 +813,15 @@ export default {
       }
     };
 
+    const handleAuthInitiated = () => {
+      if (isEditing.value) return;
+
+      emit('trigger-event', {
+        name: 'auth-initiated',
+        event: {}
+      });
+    };
+
     const handleClose = () => {
       if (isEditing.value) return;
 
@@ -826,7 +885,17 @@ export default {
       paginatedGroupedEvents,
       totalPagesGrouped,
 
-      // Textos
+      // Autenticação
+      authUrl,
+      isAuthenticated,
+
+      // Textos - Auth
+      titleAuth,
+      descriptionAuth,
+      buttonAuth,
+      labelAuthenticating,
+
+      // Textos - Importação
       titleStep1,
       titleStep3,
       titleSuccess,
@@ -866,8 +935,10 @@ export default {
       eventItemStyles,
       badgeColors,
       paginationStyles,
+      authPromptStyles,
 
       // Métodos
+      handleAuthInitiated,
       fetchEvents,
       importEvents,
       toggleEventSelection,
