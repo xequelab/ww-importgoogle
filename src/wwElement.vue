@@ -90,10 +90,9 @@
                     </svg>
                   </button>
                 </div>
-                </div>
               </div>
-              <p class="checklist-desc">Sincronização bidirecional: eventos são atualizados em tempo real entre as plataformas.</p>
             </div>
+            <p class="checklist-desc">Sincronização bidirecional: eventos são atualizados em tempo real entre as plataformas.</p>
           </div>
         </div>
       </div>
