@@ -2134,6 +2134,8 @@ export default {
   font-family: inherit;
   transition: all 0.2s ease;
 
+  svg {
+    width: 14px;
     height: 14px;
   }
 
