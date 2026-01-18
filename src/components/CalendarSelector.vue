@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <div v-if="isCalendarActive(calendar)" class="sync-badge">
+        <div v-if="isCalendarSynced(calendar)" class="sync-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
@@ -214,7 +214,7 @@ export default {
       default: () => ({})
     }
   },
-  emits: ['calendar-selected', 'fetch-calendars', 'continue', 'webhook-toggle'],
+  emits: ['calendar-selected', 'calendar-preselected', 'fetch-calendars', 'continue', 'webhook-toggle'],
   setup(props, { emit }) {
     const isLoading = ref(false);
     const isChanging = ref(false);
@@ -233,11 +233,19 @@ export default {
       return calendar.recebe_agendamentos === true;
     };
 
+    // Badge "Sincronizado" só aparece para o que está REALMENTE no banco
+    const isCalendarSynced = (calendar) => {
+      return calendar.recebe_agendamentos === true;
+    };
+
     const handleCalendarClick = (calendar) => {
       if (isChanging.value) return;
 
-      // Apenas marca como selecionado temporariamente (não emite evento ainda)
+      // Marca como selecionado temporariamente
       temporarySelectedId.value = calendar.id;
+
+      // Emite evento de pré-seleção (para atualizar variáveis, mas não confirmar)
+      emit('calendar-preselected', calendar);
     };
 
     const handleConfirmSelection = () => {
@@ -460,6 +468,7 @@ export default {
       isChanging,
       hasActiveCalendar,
       isCalendarActive,
+      isCalendarSynced,
       temporarySelectedId,
       handleCalendarClick,
       handleConfirmSelection,

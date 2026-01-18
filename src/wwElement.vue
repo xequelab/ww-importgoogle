@@ -62,6 +62,7 @@
         :webhook-button-inactive="buttonWebhookActivate"
         :webhook-button-retry="buttonWebhookRetry"
         :styles="calendarSelectorStyles"
+        @calendar-preselected="handleCalendarPreselected"
         @calendar-selected="handleCalendarSelected"
         @fetch-calendars="handleFetchCalendars"
         @continue="handleContinueFromCalendar"
@@ -441,17 +442,12 @@ export default {
       defaultValue: null
     });
 
-    // Computed para o calendário ativo
+    // Computed para o calendário ativo (apenas do banco, não temporário)
     const activeCalendar = computed(() => {
-      // Prioriza seleção temporária (antes do banco atualizar)
-      if (temporarySelectedCalendar.value) {
-        return temporarySelectedCalendar.value;
-      }
-      // Senão, busca o calendário com recebe_agendamentos true
       return userCalendars.value.find(cal => cal.recebe_agendamentos === true) || null;
     });
 
-    // Sincronizar calendário ativo com variáveis expostas
+    // Sincronizar calendário ativo do BANCO com variáveis expostas
     watch(activeCalendar, (calendar) => {
       if (calendar) {
         setSelectedCalendarId(calendar.calendar_id || null);
@@ -463,6 +459,21 @@ export default {
         setSelectedCalendarObject(null);
       }
     }, { immediate: true });
+
+    // Watch na seleção temporária para atualizar variáveis IMEDIATAMENTE
+    watch(temporarySelectedCalendar, (calendar) => {
+      if (calendar) {
+        // Atualiza as variáveis com a seleção temporária
+        setSelectedCalendarId(calendar.calendar_id || null);
+        setSelectedCalendarName(calendar.summary_override || calendar.calendar_summary || null);
+        setSelectedCalendarObject(calendar);
+      } else if (!activeCalendar.value) {
+        // Só limpa se não houver calendário ativo no banco
+        setSelectedCalendarId(null);
+        setSelectedCalendarName(null);
+        setSelectedCalendarObject(null);
+      }
+    });
 
     // Limpar seleção temporária quando o banco atualizar
     watch(userCalendars, (newCalendars) => {
@@ -1182,11 +1193,18 @@ export default {
       });
     };
 
+    const handleCalendarPreselected = (calendar) => {
+      if (isEditing.value) return;
+
+      // Marca calendário como temporariamente selecionado (apenas para variáveis)
+      temporarySelectedCalendar.value = calendar;
+    };
+
     const handleCalendarSelected = (calendar) => {
       if (isEditing.value) return;
 
-      // Marca calendário como temporariamente selecionado
-      temporarySelectedCalendar.value = calendar;
+      // Limpa temporário pois agora vai confirmar
+      temporarySelectedCalendar.value = null;
 
       emit('trigger-event', {
         name: 'calendar-selected',
@@ -1429,6 +1447,7 @@ export default {
 
       // Métodos
       handleAuthInitiated,
+      handleCalendarPreselected,
       handleCalendarSelected,
       handleFetchCalendars,
       handleContinueFromCalendar,
