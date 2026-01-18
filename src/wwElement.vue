@@ -70,6 +70,7 @@
             :group-title="item.title"
             :events="item.events"
             :selected-ids="selectedEventIds"
+            :imported-ids="importedGoogleIds"
             :styles="eventItemStyles"
             :checkbox-styles="checkboxStyles"
             :badge-colors="badgeColors"
@@ -82,6 +83,7 @@
             v-else
             :event="item.event"
             :selected="selectedEventIds.includes(item.event.google_event_id)"
+            :is-imported="importedGoogleIds.has(item.event.google_event_id)"
             :styles="eventItemStyles"
             :checkbox-styles="checkboxStyles"
             :badge-colors="badgeColors"
@@ -812,6 +814,7 @@ export default {
       isEditing,
 
       // Computed
+      importedGoogleIds,
       filteredEvents,
       paginatedEvents,
       totalPages,
