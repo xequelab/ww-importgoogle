@@ -1459,9 +1459,21 @@ export default {
       // Limpa temporário pois agora vai confirmar
       temporarySelectedCalendar.value = null;
 
+      const calendarId = calendar?.calendar_id;
+      
+      console.log('📅 Calendário selecionado:', { 
+        calendarId, 
+        name: calendar?.summary_override || calendar?.calendar_summary,
+        calendar 
+      });
+
       emit('trigger-event', {
         name: 'calendar-selected',
-        event: { calendar }
+        event: { 
+          calendar,
+          calendarId,  // ⚠️ USE ESTE para criar webhook: event.calendarId
+          calendarName: calendar?.summary_override || calendar?.calendar_summary
+        }
       });
     };
 
@@ -1535,13 +1547,25 @@ export default {
       const calendarId = activeCalendar.value?.calendar_id;
       const action = isWebhookActive.value ? 'pause' : 'activate';
 
+      console.log('🔔 Webhook Toggle:', { action, calendarId, activeCalendar: activeCalendar.value });
+
+      if (!calendarId) {
+        console.error('❌ Erro: Nenhum calendário ativo encontrado. Certifique-se de selecionar um calendário primeiro.');
+        emit('trigger-event', { 
+          name: 'fetch-error', 
+          event: { message: 'Nenhum calendário selecionado. Selecione um calendário na aba "Calendário" primeiro.' } 
+        });
+        return;
+      }
+
       // SEMPRE emitir o evento para permitir Workflows no WeWeb
       // O usuário pode bindar esse evento e rodar a lógica inteira por fora se quiser
       emit('trigger-event', { 
         name: 'webhook-toggle', 
         event: { 
           action, 
-          calendarId,
+          calendarId,  // ⚠️ USE ESTE VALOR no workflow, não a variável selectedCalendarId
+          calendar: activeCalendar.value,
           status: webhookStatus.value?.status 
         } 
       });
