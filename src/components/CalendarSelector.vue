@@ -71,44 +71,26 @@
       </button>
     </div>
 
-    <!-- Seção de Webhook (só aparece quando há calendário ativo) -->
-    <div v-if="hasActiveCalendar && webhookStatus" class="webhook-section" :style="webhookSectionStyle">
-      <div class="webhook-header">
-        <div class="webhook-icon" :style="webhookIconStyle">
+    <!-- Seção de Webhook (Layout Horizontal) -->
+    <div v-if="hasActiveCalendar && webhookStatus" class="webhook-section-horizontal" :style="webhookSectionStyle">
+      <div class="webhook-left">
+        <div class="webhook-icon-small">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
           </svg>
         </div>
-        <h3 class="webhook-title" :style="webhookTitleStyle">{{ webhookSectionTitle }}</h3>
-      </div>
-
-      <div class="webhook-status" :style="webhookStatusStyle">
-        <div class="status-row">
-          <span :style="mutedTextStyle">Status:</span>
-          <span :style="getWebhookStatusStyle(webhookStatus.status)">
+        <div class="webhook-info">
+          <span class="webhook-title-small">{{ webhookSectionTitle }}</span>
+          <span class="webhook-status-badge" :style="getWebhookStatusStyle(webhookStatus.status)">
             {{ getWebhookStatusText(webhookStatus.status) }}
           </span>
         </div>
-
-        <div v-if="webhookStatus.url" class="status-row">
-          <span :style="mutedTextStyle">Webhook:</span>
-          <span :style="webhookUrlStyle">{{ webhookStatus.url }}</span>
-        </div>
-
-        <div v-if="webhookStatus.lastSync" class="status-row">
-          <span :style="mutedTextStyle">Última sincronização:</span>
-          <span>{{ webhookStatus.lastSync }}</span>
-        </div>
-
-        <div v-if="webhookStatus.message" class="status-message" :style="getWebhookMessageStyle(webhookStatus.status)">
-          {{ webhookStatus.message }}
-        </div>
       </div>
 
-      <div class="webhook-actions" :style="webhookActionsStyle">
+      <div class="webhook-right">
         <button
-          class="btn"
+          class="btn-small"
           :style="getWebhookButtonStyle(webhookStatus.status)"
           @click="handleWebhookToggle"
         >
@@ -663,47 +645,68 @@ export default {
 }
 
 /* Webhook Section */
-.webhook-section {
+/* Webhook Section Horizontal */
+.webhook-section-horizontal {
   box-sizing: border-box;
-}
-
-.webhook-header {
-  border-bottom: 1px solid #E2E8F0;
-  padding-bottom: 12px;
-}
-
-.webhook-icon {
-  flex-shrink: 0;
-}
-
-.webhook-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.webhook-status .status-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.webhook-left {
+  display: flex;
+  align-items: center;
   gap: 12px;
+}
+
+.webhook-icon-small {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  color: #4A5568;
+}
+
+.webhook-icon-small svg {
+  width: 18px;
+  height: 18px;
+}
+
+.webhook-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.webhook-title-small {
   font-size: 14px;
+  font-weight: 600;
+  color: #2D3748;
 }
 
-.webhook-status .status-row span:first-child {
-  flex-shrink: 0;
-}
-
-.webhook-status .status-row span:last-child {
-  text-align: right;
-  word-break: break-word;
-}
-
-.webhook-status .status-message {
-  padding: 8px 12px;
-  background-color: rgba(0, 0, 0, 0.02);
-  border-radius: 4px;
+.webhook-status-badge {
   font-size: 12px;
-  line-height: 1.4;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.03);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-small:hover {
+  opacity: 0.9;
 }
 
 /* Responsividade */

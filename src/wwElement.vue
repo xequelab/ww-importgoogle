@@ -356,11 +356,14 @@ export default {
     // ===== Autenticação =====
     const userTokens = computed(() => props.content?.userTokens || null);
     const isTokenExpired = computed(() => {
+      // Se não tiver expires_at, assume não expirado OU expirado dependendo da lógica.
+      // Melhor assumir não expirado se tiver access_token, mas vamos manter a lógica atual.
       if (!userTokens.value?.expires_at) return false;
       const expiresAt = new Date(userTokens.value.expires_at);
       return expiresAt <= new Date();
     });
 
+    const createWebhookEndpoint = computed(() => props.content?.createWebhookEndpoint || '');
     const renewTokenEndpoint = computed(() => props.content?.renewTokenEndpoint || '');
 
     const isAuthenticated = computed(() => {
@@ -1498,13 +1501,69 @@ export default {
       step.value = 'select-period';
     };
 
-    const handleWebhookToggle = () => {
+    const handleWebhookToggle = async () => {
       if (isEditing.value) return;
 
-      emit('trigger-event', {
-        name: 'webhook-toggle',
-        event: {}
-      });
+      if (isWebhookActive.value) {
+        emit('trigger-event', { name: 'webhook-toggle', event: { action: 'pause' } });
+        return;
+      }
+
+      if (!createWebhookEndpoint.value) {
+        console.error('Create Webhook Endpoint not configured');
+        emit('trigger-event', { name: 'fetch-error', event: { message: 'Endpoint de criação de webhook não configurado' } });
+        return;
+      }
+
+      if (!activeCalendar.value) {
+        console.error('No active calendar selected');
+        return;
+      }
+
+      if (!authToken.value) {
+        emit('trigger-event', { name: 'fetch-error', event: { message: 'Token de autenticação não fornecido' } });
+        return;
+      }
+
+      try {
+        isRenewingToken.value = true;
+        
+        const response = await fetch(createWebhookEndpoint.value, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken.value}`
+          },
+          body: JSON.stringify({
+            calendarId: activeCalendar.value.calendar_id
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Erro na API (${response.status}): ${errText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+           emit('trigger-event', { 
+             name: 'webhook-toggle', 
+             event: { 
+               action: 'activated', 
+               result 
+             } 
+           });
+        } else {
+          throw new Error(result.error || 'Erro desconhecido ao criar webhook');
+        }
+
+      } catch (error) {
+        console.error('Erro ao ativar webhook:', error);
+        emit('trigger-event', { name: 'fetch-error', event: { message: error.message } });
+      } finally {
+        isRenewingToken.value = false;
+      }
     };
 
     const goToCalendarTab = () => {
@@ -2075,8 +2134,6 @@ export default {
   font-family: inherit;
   transition: all 0.2s ease;
 
-  svg {
-    width: 14px;
     height: 14px;
   }
 
@@ -2092,6 +2149,13 @@ export default {
       color: #B45309; /* Amber-700 */
     }
   }
+}
+
+.checklist-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
 }
 
 // Connection Status V2 (Design Bonito - Manter)

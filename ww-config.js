@@ -212,6 +212,25 @@ export default {
       }
       /* wwEditor:end */
     },
+    createWebhookEndpoint: {
+      label: { en: 'Create Webhook Endpoint', pt: 'Endpoint Criar Webhook' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: '',
+      options: {
+        placeholder: 'https://seu-projeto.supabase.co/functions/v1/cria_webhook_google'
+      },
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'URL da Edge Function para criar webhook (cria_webhook_google)'
+      },
+      propertyHelp: {
+        tooltip: 'Endpoint que ativa a sincronização criando um webhook no Google Calendar'
+      }
+      /* wwEditor:end */
+    },
     calendarId: {
       label: { en: 'Calendar ID', pt: 'ID do Calendário' },
       type: 'Text',
