@@ -21,83 +21,85 @@
         @auth-initiated="handleAuthInitiated"
       />
 
-      <!-- Status de Conexão Simplificado -->
+      <!-- Status de Conexão - 2 Requisitos Obrigatórios -->
       <div v-else class="connection-status">
         <h2 class="step-title" :style="titleStyle">{{ labelConnectionTitle }}</h2>
         <p :style="mutedTextStyle">{{ labelConnectionDescription }}</p>
 
-        <!-- Item 1: Autorização Google -->
-        <div class="status-item" :style="statusItemStyle">
-          <div class="status-item-header">
-            <div class="status-item-icon" :style="getStatusIconStyle(true)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
+        <!-- Indicador de Progresso -->
+        <div class="connection-progress" :style="connectionProgressStyle">
+          <div class="progress-header">
+            <span :style="{ fontWeight: '600', fontSize: '16px' }">{{ connectionProgressText }}</span>
+            <span :style="connectionProgressBadgeStyle">{{ connectionProgressCount }}</span>
+          </div>
+        </div>
+
+        <!-- Lista de Requisitos -->
+        <div class="requirements-list">
+          <!-- Requisito 1: Autorização Google -->
+          <div class="requirement-item" :style="getRequirementItemStyle(true)">
+            <div class="requirement-number" :style="getRequirementNumberStyle(true)">
+              <svg v-if="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
+              <span v-else>1</span>
             </div>
-            <div class="status-item-content">
-              <h3 class="status-item-title">{{ labelAuthorizationTitle }}</h3>
-              <p class="status-item-status" :style="{ color: successColor, fontWeight: '600' }">
-                ✓ {{ labelConnected }}
-              </p>
+            <div class="requirement-content">
+              <h3 class="requirement-title" :style="requirementTitleStyle">{{ labelRequirement1Title }}</h3>
+              <p class="requirement-description" :style="mutedTextStyle">{{ labelRequirement1Description }}</p>
+              <div v-if="userTokens" class="requirement-details" :style="requirementDetailsStyle">
+                <div class="detail-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>{{ userTokens.email }}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="status-item-details" :style="statusDetailsStyle">
-            <div class="detail-row">
-              <span :style="mutedTextStyle">{{ labelAccount }}:</span>
-              <span>{{ userTokens?.email || 'N/A' }}</span>
+
+          <!-- Requisito 2: Agenda Selecionada -->
+          <div class="requirement-item" :style="getRequirementItemStyle(hasActiveCalendar)">
+            <div class="requirement-number" :style="getRequirementNumberStyle(hasActiveCalendar)">
+              <svg v-if="hasActiveCalendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span v-else>2</span>
             </div>
-            <div class="detail-row" v-if="userTokens && userTokens.expires_at">
-              <span :style="mutedTextStyle">{{ labelExpiresAt }}:</span>
-              <span>{{ formatExpiryDate(userTokens.expires_at) }}</span>
+            <div class="requirement-content">
+              <h3 class="requirement-title" :style="requirementTitleStyle">{{ labelRequirement2Title }}</h3>
+              <p class="requirement-description" :style="mutedTextStyle">{{ labelRequirement2Description }}</p>
+              <div v-if="activeCalendar" class="requirement-details" :style="requirementDetailsStyle">
+                <div class="detail-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</span>
+                </div>
+              </div>
+              <button
+                v-if="!hasActiveCalendar"
+                class="btn btn-primary"
+                :style="{ ...primaryButtonStyle, marginTop: '12px', width: '100%' }"
+                @click="goToCalendarTab"
+              >
+                {{ labelSelectCalendarButton }}
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Item 2: Agenda Selecionada -->
-        <div class="status-item" :style="statusItemStyle">
-          <div class="status-item-header">
-            <div class="status-item-icon" :style="getStatusIconStyle(hasActiveCalendar)">
-              <svg v-if="hasActiveCalendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-                <polyline points="11 14 12 15 15 12"></polyline>
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-            </div>
-            <div class="status-item-content">
-              <h3 class="status-item-title">{{ labelCalendarTitle }}</h3>
-              <p class="status-item-status" :style="getCalendarStatusStyle">
-                {{ calendarStatusText }}
-              </p>
-            </div>
-          </div>
-          <div v-if="activeCalendar" class="status-item-details" :style="statusDetailsStyle">
-            <div class="detail-row">
-              <span :style="mutedTextStyle">{{ labelCalendarName }}:</span>
-              <span>{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</span>
-            </div>
-            <div v-if="activeCalendar.calendar_id" class="detail-row">
-              <span :style="mutedTextStyle">ID:</span>
-              <span :style="{ fontSize: '12px', wordBreak: 'break-all' }">{{ activeCalendar.calendar_id }}</span>
-            </div>
-          </div>
-          <div v-if="!hasActiveCalendar" class="status-item-action">
-            <button
-              class="btn btn-primary"
-              :style="{ ...primaryButtonStyle, marginTop: '12px' }"
-              @click="goToCalendarTab"
-            >
-              {{ labelSelectCalendarButton }}
-            </button>
-          </div>
+        <!-- Mensagem de Sucesso quando completo -->
+        <div v-if="isFullyConnected" class="connection-complete" :style="connectionCompleteStyle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>{{ labelConnectionComplete }}</span>
         </div>
       </div>
     </div>
@@ -620,39 +622,116 @@ export default {
     // Webhook Status (vindo de props bindáveis)
     const webhookStatus = computed(() => props.content?.webhookStatus || null);
 
-    // ===== Textos - Status de Conexão =====
+    // ===== Textos - Status de Conexão (Nova UX de Requisitos) =====
     const labelConnectionTitle = computed(() => props.content?.labelConnectionTitle || 'Status da Conexão');
-    const labelConnectionDescription = computed(() => props.content?.labelConnectionDescription || 'Verifique o status da sua integração com o Google Calendar');
-    const labelAuthorizationTitle = computed(() => props.content?.labelAuthorizationTitle || 'Autorização Google');
-    const labelConnected = computed(() => props.content?.labelConnected || 'Conectado');
-    const labelAccount = computed(() => props.content?.labelAccount || 'Conta');
-    const labelExpiresAt = computed(() => props.content?.labelExpiresAt || 'Expira em');
-    const labelCalendarTitle = computed(() => props.content?.labelCalendarTitle || 'Agenda Selecionada');
-    const labelCalendarName = computed(() => props.content?.labelCalendarName || 'Agenda');
-    const labelCalendarActive = computed(() => props.content?.labelCalendarActive || 'Ativa');
-    const labelCalendarNotSelected = computed(() => props.content?.labelCalendarNotSelected || 'Nenhuma agenda selecionada');
+    const labelConnectionDescription = computed(() => props.content?.labelConnectionDescription || 'Para usar a integração, complete os 2 requisitos abaixo:');
+    const labelConnectionProgressComplete = computed(() => props.content?.labelConnectionProgressComplete || 'Todos os requisitos completos');
+    const labelConnectionProgressIncomplete = computed(() => props.content?.labelConnectionProgressIncomplete || 'Requisitos pendentes');
+    const labelRequirement1Title = computed(() => props.content?.labelRequirement1Title || '1. Autorização Google');
+    const labelRequirement1Description = computed(() => props.content?.labelRequirement1Description || 'Conecte sua conta do Google');
+    const labelRequirement2Title = computed(() => props.content?.labelRequirement2Title || '2. Agenda Selecionada');
+    const labelRequirement2Description = computed(() => props.content?.labelRequirement2Description || 'Escolha qual calendário sincronizar');
     const labelSelectCalendarButton = computed(() => props.content?.labelSelectCalendarButton || 'Selecionar Agenda');
+    const labelConnectionComplete = computed(() => props.content?.labelConnectionComplete || '✓ Integração configurada com sucesso! Você já pode importar eventos.');
 
-    // ===== Status de Calendário =====
-    const calendarStatusText = computed(() => {
-      if (hasActiveCalendar.value) {
-        return `✓ ${labelCalendarActive.value}`;
-      }
-      return `⚠ ${labelCalendarNotSelected.value}`;
+    // ===== Status de Conexão Completa =====
+    const isFullyConnected = computed(() => {
+      return isAuthenticated.value && hasActiveCalendar.value;
     });
 
-    const getCalendarStatusStyle = computed(() => {
-      if (hasActiveCalendar.value) {
-        return {
-          color: successColor.value,
-          fontWeight: '600'
-        };
-      }
+    const connectionProgressText = computed(() => {
+      return isFullyConnected.value
+        ? labelConnectionProgressComplete.value
+        : labelConnectionProgressIncomplete.value;
+    });
+
+    const connectionProgressCount = computed(() => {
+      const completed = (isAuthenticated.value ? 1 : 0) + (hasActiveCalendar.value ? 1 : 0);
+      return `${completed}/2`;
+    });
+
+    const connectionProgressStyle = computed(() => ({
+      backgroundColor: isFullyConnected.value
+        ? `rgba(56, 161, 105, 0.1)`
+        : `rgba(229, 62, 62, 0.05)`,
+      border: `2px solid ${isFullyConnected.value
+        ? (props.content?.successColor || '#38A169')
+        : (props.content?.borderColor || '#E2E8F0')}`,
+      borderRadius: '8px',
+      padding: '16px',
+      marginBottom: '24px'
+    }));
+
+    const connectionProgressBadgeStyle = computed(() => ({
+      backgroundColor: isFullyConnected.value
+        ? (props.content?.successColor || '#38A169')
+        : (props.content?.textMutedColor || '#718096'),
+      color: '#FFFFFF',
+      padding: '4px 12px',
+      borderRadius: '12px',
+      fontSize: '14px',
+      fontWeight: '700'
+    }));
+
+    const connectionCompleteStyle = computed(() => ({
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      backgroundColor: `rgba(56, 161, 105, 0.1)`,
+      color: props.content?.successColor || '#38A169',
+      padding: '16px',
+      borderRadius: '8px',
+      marginTop: '24px',
+      fontWeight: '600',
+      fontSize: '14px'
+    }));
+
+    const requirementTitleStyle = computed(() => ({
+      fontSize: '16px',
+      fontWeight: '600',
+      margin: '0 0 4px 0',
+      color: props.content?.textColor || '#1A202C'
+    }));
+
+    const requirementDetailsStyle = computed(() => ({
+      marginTop: '12px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px'
+    }));
+
+    const getRequirementItemStyle = (isCompleted) => {
       return {
-        color: props.content?.errorColor || '#E53E3E',
-        fontWeight: '600'
+        display: 'flex',
+        gap: '16px',
+        padding: '20px',
+        backgroundColor: props.content?.surfaceColor || '#F7FAFC',
+        border: `2px solid ${isCompleted
+          ? (props.content?.successColor || '#38A169')
+          : (props.content?.borderColor || '#E2E8F0')}`,
+        borderRadius: '8px',
+        marginBottom: '16px',
+        opacity: isCompleted ? '1' : '0.8'
       };
-    });
+    };
+
+    const getRequirementNumberStyle = (isCompleted) => {
+      return {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        backgroundColor: isCompleted
+          ? (props.content?.successColor || '#38A169')
+          : (props.content?.borderColor || '#E2E8F0'),
+        color: isCompleted ? '#FFFFFF' : (props.content?.textMutedColor || '#718096'),
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '18px',
+        fontWeight: '700',
+        flexShrink: '0'
+      };
+    };
 
 
     // ===== Sistema de Abas =====
@@ -1555,20 +1634,27 @@ export default {
       buttonWebhookRetry,
       webhookStatus,
 
-      // Textos - Status de Conexão
+      // Textos - Status de Conexão (Nova UX)
       labelConnectionTitle,
       labelConnectionDescription,
-      labelAuthorizationTitle,
-      labelConnected,
-      labelAccount,
-      labelExpiresAt,
-      labelCalendarTitle,
-      labelCalendarName,
-      labelCalendarActive,
-      labelCalendarNotSelected,
+      labelConnectionProgressComplete,
+      labelConnectionProgressIncomplete,
+      labelRequirement1Title,
+      labelRequirement1Description,
+      labelRequirement2Title,
+      labelRequirement2Description,
       labelSelectCalendarButton,
-      calendarStatusText,
-      getCalendarStatusStyle,
+      labelConnectionComplete,
+      isFullyConnected,
+      connectionProgressText,
+      connectionProgressCount,
+      connectionProgressStyle,
+      connectionProgressBadgeStyle,
+      connectionCompleteStyle,
+      requirementTitleStyle,
+      requirementDetailsStyle,
+      getRequirementItemStyle,
+      getRequirementNumberStyle,
 
       // Textos - Importação
       titleStep1,
@@ -1795,7 +1881,7 @@ export default {
   width: 100%;
 }
 
-// Connection Status (nova aba de conexão)
+// Connection Status (Nova UX de Requisitos)
 .connection-status {
   padding: 20px 0;
 
@@ -1804,6 +1890,70 @@ export default {
   }
 }
 
+.connection-progress {
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.requirements-list {
+  margin-top: 0;
+}
+
+.requirement-item {
+  .requirement-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .requirement-title {
+    line-height: 1.4;
+  }
+
+  .requirement-description {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .requirement-details {
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        stroke: currentColor;
+      }
+
+      span {
+        word-break: break-word;
+      }
+    }
+  }
+}
+
+.requirement-number {
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.connection-complete {
+  svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+}
+
+// Estilos antigos (manter para compatibilidade)
 .status-item {
   box-sizing: border-box;
 
@@ -1932,6 +2082,39 @@ export default {
     padding: 16px 0;
   }
 
+  .connection-progress {
+    padding: 12px !important;
+  }
+
+  .requirement-item {
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+
+  .requirement-number {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+
+    svg {
+      width: 18px !important;
+      height: 18px !important;
+    }
+  }
+
+  .requirement-title {
+    font-size: 15px !important;
+  }
+
+  .requirement-description {
+    font-size: 13px !important;
+  }
+
+  .connection-complete {
+    font-size: 13px !important;
+    padding: 12px !important;
+  }
+
   .status-item {
     padding: 16px !important;
 
@@ -1995,6 +2178,52 @@ export default {
 
   .connection-status {
     padding: 12px 0;
+  }
+
+  .connection-progress {
+    padding: 10px !important;
+
+    .progress-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+
+  .requirement-item {
+    padding: 14px !important;
+    gap: 10px !important;
+  }
+
+  .requirement-number {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+
+    svg {
+      width: 16px !important;
+      height: 16px !important;
+    }
+  }
+
+  .requirement-title {
+    font-size: 14px !important;
+  }
+
+  .requirement-description {
+    font-size: 12px !important;
+  }
+
+  .connection-complete {
+    font-size: 12px !important;
+    padding: 10px !important;
+    flex-direction: column;
+    text-align: center;
+
+    svg {
+      width: 20px !important;
+      height: 20px !important;
+    }
   }
 
   .status-item {

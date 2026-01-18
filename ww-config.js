@@ -709,89 +709,79 @@ export default {
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Verifique o status da sua integração com o Google Calendar',
+      defaultValue: 'Para usar a integração, complete os 2 requisitos abaixo:',
       options: {
-        placeholder: 'Verifique o status da sua integração com o Google Calendar'
+        placeholder: 'Para usar a integração, complete os 2 requisitos abaixo:'
       }
     },
-    labelAuthorizationTitle: {
-      label: { en: 'Connection - Authorization Title', pt: 'Conexão - Título Autorização' },
+    labelConnectionProgressComplete: {
+      label: { en: 'Connection - Progress Complete', pt: 'Conexão - Progresso Completo' },
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Autorização Google',
+      defaultValue: 'Todos os requisitos completos',
       options: {
-        placeholder: 'Autorização Google'
+        placeholder: 'Todos os requisitos completos'
       }
     },
-    labelConnected: {
-      label: { en: 'Connection - Connected Label', pt: 'Conexão - Label Conectado' },
+    labelConnectionProgressIncomplete: {
+      label: { en: 'Connection - Progress Incomplete', pt: 'Conexão - Progresso Incompleto' },
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Conectado',
+      defaultValue: 'Requisitos pendentes',
       options: {
-        placeholder: 'Conectado'
+        placeholder: 'Requisitos pendentes'
       }
     },
-    labelAccount: {
-      label: { en: 'Connection - Account Label', pt: 'Conexão - Label Conta' },
+    labelRequirement1Title: {
+      label: { en: 'Connection - Requirement 1 Title', pt: 'Conexão - Requisito 1 Título' },
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Conta',
+      defaultValue: '1. Autorização Google',
       options: {
-        placeholder: 'Conta'
+        placeholder: '1. Autorização Google'
       }
     },
-    labelExpiresAt: {
-      label: { en: 'Connection - Expires At Label', pt: 'Conexão - Label Expira em' },
+    labelRequirement1Description: {
+      label: { en: 'Connection - Requirement 1 Description', pt: 'Conexão - Requisito 1 Descrição' },
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Expira em',
+      defaultValue: 'Conecte sua conta do Google',
       options: {
-        placeholder: 'Expira em'
+        placeholder: 'Conecte sua conta do Google'
       }
     },
-    labelCalendarTitle: {
-      label: { en: 'Connection - Calendar Title', pt: 'Conexão - Título Agenda' },
+    labelRequirement2Title: {
+      label: { en: 'Connection - Requirement 2 Title', pt: 'Conexão - Requisito 2 Título' },
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Agenda Selecionada',
+      defaultValue: '2. Agenda Selecionada',
       options: {
-        placeholder: 'Agenda Selecionada'
+        placeholder: '2. Agenda Selecionada'
       }
     },
-    labelCalendarName: {
-      label: { en: 'Connection - Calendar Name Label', pt: 'Conexão - Label Nome Agenda' },
+    labelRequirement2Description: {
+      label: { en: 'Connection - Requirement 2 Description', pt: 'Conexão - Requisito 2 Descrição' },
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Agenda',
+      defaultValue: 'Escolha qual calendário sincronizar',
       options: {
-        placeholder: 'Agenda'
+        placeholder: 'Escolha qual calendário sincronizar'
       }
     },
-    labelCalendarActive: {
-      label: { en: 'Connection - Calendar Active', pt: 'Conexão - Agenda Ativa' },
+    labelConnectionComplete: {
+      label: { en: 'Connection - Complete Message', pt: 'Conexão - Mensagem Completo' },
       type: 'Text',
       section: 'settings',
       bindable: true,
-      defaultValue: 'Ativa',
+      defaultValue: '✓ Integração configurada com sucesso! Você já pode importar eventos.',
       options: {
-        placeholder: 'Ativa'
-      }
-    },
-    labelCalendarNotSelected: {
-      label: { en: 'Connection - Calendar Not Selected', pt: 'Conexão - Agenda Não Selecionada' },
-      type: 'Text',
-      section: 'settings',
-      bindable: true,
-      defaultValue: 'Nenhuma agenda selecionada',
-      options: {
-        placeholder: 'Nenhuma agenda selecionada'
+        placeholder: '✓ Integração configurada com sucesso! Você já pode importar eventos.'
       }
     },
     labelSelectCalendarButton: {
