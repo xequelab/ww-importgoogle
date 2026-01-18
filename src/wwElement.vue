@@ -21,93 +21,58 @@
         @auth-initiated="handleAuthInitiated"
       />
 
-      <!-- Status de Conexão - Design Bonito -->
-      <div v-else class="connection-status-v2">
-        <div class="connection-header">
-          <div>
-            <h2 class="connection-title" :style="titleStyle">{{ labelConnectionTitle }}</h2>
-            <p class="connection-description" :style="mutedTextStyle">{{ labelConnectionDescription }}</p>
+      <!-- Status da Conexão - Clean Tailwind Style -->
+      <div v-else class="connection-clean">
+        <!-- Alert Principal -->
+        <div class="alert-main" :class="{ 'alert-success': isFullyConnected, 'alert-warning': !isFullyConnected }">
+          <div class="alert-icon">
+            <svg v-if="isFullyConnected" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <svg v-else viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
           </div>
-          <div class="progress-badge-v2" :style="connectionProgressBadgeStyleV2">
-            {{ connectionProgressCount }}
+          <div class="alert-content">
+            <h3 class="alert-title">{{ isFullyConnected ? 'Integração Ativa' : 'Ação Necessária' }}</h3>
+            <p class="alert-desc">{{ isFullyConnected ? 'Tudo funcionando corretamente' : 'Complete os itens abaixo para ativar' }}</p>
           </div>
         </div>
 
-        <!-- Cards de Requisitos -->
-        <div class="requirements-grid">
-          <!-- Card 1: Autorização -->
-          <div class="req-card" :class="{ 'req-card-complete': true }">
-            <div class="req-card-header">
-              <div class="req-icon req-icon-complete">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <div class="req-info">
-                <div class="req-number">Requisito 1</div>
-                <h3 class="req-title">Autorização Google</h3>
-              </div>
+        <!-- Checklist -->
+        <div class="checklist">
+          <div class="checklist-item checklist-success">
+            <div class="checklist-marker">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
             </div>
-            <div class="req-body">
-              <p class="req-desc" :style="mutedTextStyle">Conta conectada com sucesso</p>
-              <div v-if="userTokens?.email" class="req-detail-chip">
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                </svg>
-                <span>{{ userTokens.email }}</span>
-              </div>
+            <div class="checklist-body">
+              <div class="checklist-label">Autorização Google</div>
+              <div v-if="userTokens?.email" class="checklist-value">{{ userTokens.email }}</div>
             </div>
           </div>
 
-          <!-- Card 2: Agenda -->
-          <div class="req-card" :class="{ 'req-card-complete': hasActiveCalendar, 'req-card-pending': !hasActiveCalendar }">
-            <div class="req-card-header">
-              <div class="req-icon" :class="{ 'req-icon-complete': hasActiveCalendar, 'req-icon-pending': !hasActiveCalendar }">
-                <svg v-if="hasActiveCalendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span v-else class="req-number-badge">2</span>
-              </div>
-              <div class="req-info">
-                <div class="req-number">Requisito 2</div>
-                <h3 class="req-title">Agenda Selecionada</h3>
-              </div>
+          <div class="checklist-item" :class="{ 'checklist-success': hasActiveCalendar, 'checklist-pending': !hasActiveCalendar }">
+            <div class="checklist-marker">
+              <svg v-if="hasActiveCalendar" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <svg v-else viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+              </svg>
             </div>
-            <div class="req-body">
-              <p v-if="hasActiveCalendar" class="req-desc" :style="mutedTextStyle">Agenda configurada para sincronização</p>
-              <p v-else class="req-desc" :style="mutedTextStyle">Escolha qual calendário será sincronizado</p>
-
-              <div v-if="activeCalendar" class="req-detail-chip">
+            <div class="checklist-body">
+              <div class="checklist-label">Agenda Sincronizada</div>
+              <div v-if="activeCalendar" class="checklist-value">{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</div>
+              <button v-else class="checklist-action" @click="goToCalendarTab">
+                Selecionar agenda
                 <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</span>
-              </div>
-
-              <button
-                v-else
-                class="btn-select-v2"
-                :style="selectCalendarButtonStyleV2"
-                @click="goToCalendarTab"
-              >
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                </svg>
-                {{ labelSelectCalendarButton }}
               </button>
             </div>
           </div>
-        </div>
-
-        <!-- Banner de Sucesso -->
-        <div v-if="isFullyConnected" class="success-banner-v2">
-          <div class="success-icon-v2">
-            <svg viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-          <span>{{ labelConnectionComplete }}</span>
         </div>
       </div>
     </div>
@@ -1929,7 +1894,184 @@ export default {
   width: 100%;
 }
 
-// Connection Status V2 (Design Bonito)
+// Connection Clean - Tailwind Style
+.connection-clean {
+  .alert-main {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    gap: 12px;
+
+    &.alert-success {
+      background-color: #D1FAE5;
+      border: 1px solid #6EE7B7;
+
+      .alert-icon {
+        color: #059669;
+      }
+
+      .alert-title {
+        color: #065F46;
+      }
+
+      .alert-desc {
+        color: #047857;
+      }
+    }
+
+    &.alert-warning {
+      background-color: #FEF3C7;
+      border: 1px solid #FCD34D;
+
+      .alert-icon {
+        color: #D97706;
+      }
+
+      .alert-title {
+        color: #92400E;
+      }
+
+      .alert-desc {
+        color: #B45309;
+      }
+    }
+  }
+
+  .alert-icon {
+    flex-shrink: 0;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .alert-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .alert-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 2px 0;
+    line-height: 1.4;
+  }
+
+  .alert-desc {
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: white;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 8px;
+  gap: 12px;
+  transition: all 0.2s ease;
+
+  &.checklist-success {
+    border-color: #10B981;
+    background: #F0FDF4;
+
+    .checklist-marker {
+      background: #10B981;
+      color: white;
+    }
+
+    .checklist-label {
+      color: #065F46;
+    }
+
+    .checklist-value {
+      color: #047857;
+    }
+  }
+
+  &.checklist-pending {
+    .checklist-marker {
+      background: #F3F4F6;
+      color: #9CA3AF;
+    }
+
+    .checklist-label {
+      color: #6B7280;
+    }
+  }
+}
+
+.checklist-marker {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.checklist-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.checklist-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.checklist-value {
+  font-size: 13px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.checklist-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2563EB;
+  font-size: 13px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 2px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: #1D4ED8;
+    gap: 6px;
+  }
+}
+
+// Connection Status V2 (Design Bonito - Manter)
 .connection-status-v2 {
   padding: 0;
 
@@ -2315,6 +2457,41 @@ export default {
 
   .connection-status {
     padding: 16px 0;
+  }
+
+  .connection-clean {
+    .alert-main {
+      padding: 14px;
+
+      .alert-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .alert-title {
+        font-size: 13px;
+      }
+
+      .alert-desc {
+        font-size: 12px;
+      }
+    }
+
+    .checklist-item {
+      padding: 12px 14px;
+    }
+
+    .checklist-label {
+      font-size: 13px;
+    }
+
+    .checklist-value {
+      font-size: 12px;
+    }
+
+    .checklist-action {
+      font-size: 12px;
+    }
   }
 
   .connection-status-v2 {
