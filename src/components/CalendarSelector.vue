@@ -111,7 +111,7 @@
         {{ confirmButtonText }}
       </button>
       <button
-        v-else-if="hasActiveCalendar"
+        v-else-if="hasActiveCalendar && temporarySelectedId === null"
         class="btn btn-primary"
         :style="primaryButtonStyle"
         @click="handleContinue"
