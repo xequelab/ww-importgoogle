@@ -645,8 +645,12 @@ export default {
 
     const isWebhookActive = computed(() => {
       const wb = normalizedWebhook.value;
-      if (!wb) return false;
+      if (!wb) {
+        console.log('🔍 Webhook Status: null/undefined');
+        return false;
+      }
       const status = wb.status || wb.renewal_status;
+      console.log('🔍 Webhook Status:', { status, webhook: wb, isActive: status === 'active' });
       return status === 'active';
     });
 
@@ -1456,13 +1460,21 @@ export default {
     const handleCalendarSelected = (calendar) => {
       if (isEditing.value) return;
 
+      console.log('📅 Objeto calendário recebido:', calendar);
+      
       const calendarId = calendar?.calendar_id;
       
       console.log('📅 Calendário selecionado:', { 
-        calendarId, 
+        calendarId,
+        calendar_id_field: calendar?.calendar_id,
+        id_field: calendar?.id,
         name: calendar?.summary_override || calendar?.calendar_summary,
-        calendar 
+        fullCalendar: calendar 
       });
+
+      if (!calendarId) {
+        console.error('❌ ERRO: calendar_id está undefined! Verifique se o campo existe na coleção userCalendars');
+      }
 
       // IMPORTANTE: Emitir evento ANTES de limpar temporário
       // para evitar race condition com o watch
