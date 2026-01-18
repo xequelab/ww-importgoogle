@@ -16,7 +16,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="isLoading" class="loading-container">
+    <div v-if="isFetching || isLoading" class="loading-container">
       <div class="spinner" :style="spinnerStyle"></div>
       <p :style="mutedTextStyle">{{ loadingText }}</p>
     </div>
@@ -65,7 +65,7 @@
         class="btn btn-secondary"
         :style="secondaryButtonStyle"
         @click="handleFetchCalendars"
-        :disabled="isLoading"
+        :disabled="isFetching || isLoading"
       >
         {{ fetchButtonText }}
       </button>
@@ -112,11 +112,11 @@
       </button>
 
       <button
-        v-else-if="!hasActiveCalendar && temporarySelectedId === null"
+        v-else-if="!hasActiveCalendar && temporarySelectedId === null && calendars.length > 0"
         class="btn btn-secondary"
         :style="secondaryButtonStyle"
         @click="handleFetchCalendars"
-        :disabled="isLoading"
+        :disabled="isFetching || isLoading"
       >
         {{ fetchButtonText }}
       </button>
@@ -201,6 +201,10 @@ export default {
     webhookSectionTitle: {
       type: String,
       default: 'Sincronização Automática'
+    },
+    isFetching: {
+      type: Boolean,
+      default: false
     },
     webhookButtonActive: {
       type: String,
@@ -297,13 +301,9 @@ export default {
     }, { deep: true });
 
     const handleFetchCalendars = () => {
-      if (isLoading.value) return;
-      isLoading.value = true;
+      if (isLoading.value || props.isFetching) return;
+      // Emitimos o evento e deixamos o pai controlar o loading via prop isFetching
       emit('fetch-calendars');
-      // Reset loading após 3 segundos (fallback)
-      setTimeout(() => {
-        isLoading.value = false;
-      }, 3000);
     };
 
     const handleContinue = () => {

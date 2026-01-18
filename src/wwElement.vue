@@ -110,6 +110,7 @@
         :continue-button-text="buttonContinueCalendar"
         :confirm-button-text="buttonConfirmCalendar"
         :webhook-status="webhookStatus"
+        :is-fetching="isFetchingCalendars"
         :webhook-section-title="labelWebhookTitle"
         :webhook-button-active="buttonWebhookPause"
         :webhook-button-inactive="buttonWebhookActivate"
@@ -452,6 +453,7 @@ export default {
     const successCount = ref(0);
     const currentPage = ref(1);
     const isRenewingToken = ref(false);
+    const isFetchingCalendars = ref(false);
     const temporarySelectedCalendar = ref(null);
 
     // ===== Variáveis expostas =====
@@ -1469,6 +1471,9 @@ export default {
         console.warn('listCalendarsEndpoint não configurado');
         return;
       }
+      
+      if (isFetchingCalendars.value) return;
+      isFetchingCalendars.value = true;
 
       try {
         const authHeader = authToken.value
@@ -1491,9 +1496,14 @@ export default {
           throw new Error(data.error || 'Erro ao buscar calendários');
         }
 
+        console.log('✅ Calendários buscados com sucesso:', data.calendars?.length || 0);
+        console.log('⚠️ IMPORTANTE: Configure um workflow no WeWeb para recarregar a coleção userCalendars após este evento');
+
         emit('trigger-event', {
           name: 'calendars-fetched',
           event: {
+            success: true,
+            count: data.calendars?.length || 0,
             calendars: data.calendars || []
           }
         });
@@ -1507,6 +1517,8 @@ export default {
             error: error.message
           }
         });
+      } finally {
+        isFetchingCalendars.value = false;
       }
     };
 

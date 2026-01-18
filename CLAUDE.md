@@ -61,6 +61,22 @@ O componente possui 3 abas principais:
 - Seleção de eventos para importar
 - Indicador visual de eventos já importados
 
+### ⚠️ CONFIGURAÇÃO IMPORTANTE - Atualização de Coleções
+
+**Problema**: Quando o botão "Buscar Calendários" é clicado, a edge function é chamada e salva os calendários no banco, mas a coleção `userCalendars` no WeWeb não é atualizada automaticamente.
+
+**Solução**: Configure um **Workflow** no WeWeb para o evento `On calendars fetched`:
+
+1. No componente, vá em **Events** → `On calendars fetched`
+2. Adicione uma ação: **Refresh collection** → selecione a coleção `userCalendars`
+3. Isso fará com que a lista de calendários apareça imediatamente após a busca
+
+**Eventos que precisam de refresh de coleção**:
+- `calendars-fetched` → Refresh `userCalendars`
+- `calendar-selected` → Refresh `userCalendars` (para atualizar o campo `recebe_agendamentos`)
+- `webhook-toggle` → Refresh da coleção de webhooks (se aplicável)
+- `import-success` → Refresh `existingAppointments` (para marcar eventos como importados)
+
 ### Steps Internos (Aba de Importação)
 
 1. **select-period** - Usuário seleciona período de busca
