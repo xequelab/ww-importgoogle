@@ -64,7 +64,7 @@
               </svg>
             </div>
             <div class="checklist-body">
-              <div class="checklist-label">Agenda Sincronizada</div>
+              <div class="checklist-label">{{ isWebhookActive ? 'Agenda Sincronizada' : 'Agenda Não Sincronizada' }}</div>
               <div class="checklist-row-content">
                 <div v-if="activeCalendar" class="checklist-value">{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</div>
                 
