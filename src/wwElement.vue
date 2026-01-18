@@ -2087,16 +2087,16 @@ export default {
   transition: all 0.2s ease;
 
   &.checklist-success {
-    border-color: #A7F3D0;
-    background: #F0FDF4;
+    border-color: #E5E7EB;
+    background: #FFFFFF;
 
     .checklist-marker {
-      background: #10B981;
-      color: white;
+      background: #ECFDF5;
+      color: #10B981;
     }
 
     .checklist-label {
-      color: #065F46;
+      color: #1F2937;
     }
 
     .checklist-value {
