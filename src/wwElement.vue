@@ -247,19 +247,22 @@ export default {
       return expiresAt <= new Date();
     });
 
+    const renewTokenEndpoint = computed(() => props.content?.renewTokenEndpoint || '');
+
     const isAuthenticated = computed(() => {
       if (!userTokens.value) return false;
       if (userTokens.value.status !== 'active') return false;
       if (!userTokens.value.access_token) return false;
 
-      // Se expirou mas tem refresh_token, considera autenticado
-      // (vamos tentar renovar automaticamente)
-      if (isTokenExpired.value && userTokens.value.refresh_token) {
-        return true; // Ainda autenticado, mas precisa renovar
+      // Se token expirou
+      if (isTokenExpired.value) {
+        // Tem refresh_token E endpoint de renovação configurado?
+        if (userTokens.value.refresh_token && renewTokenEndpoint.value) {
+          return true; // ✅ Ainda autenticado, vai tentar renovar
+        }
+        // Não tem como renovar
+        return false; // ❌ Precisa autenticar novamente
       }
-
-      // Se expirou e não tem refresh_token, não autenticado
-      if (isTokenExpired.value) return false;
 
       return true;
     });
@@ -347,7 +350,6 @@ export default {
 
     // ===== Props computadas =====
     const authUrl = computed(() => props.content?.authUrl || '');
-    const renewTokenEndpoint = computed(() => props.content?.renewTokenEndpoint || '');
     const calendarId = computed(() => props.content?.calendarId || 'primary');
     const fetchEventsEndpoint = computed(() => props.content?.fetchEventsEndpoint || '');
     const importEventsEndpoint = computed(() => props.content?.importEventsEndpoint || '');
