@@ -120,7 +120,7 @@
         {{ continueButtonText }}
       </button>
       <button
-        v-else
+        v-else-if="!hasActiveCalendar && temporarySelectedId === null"
         class="btn btn-secondary"
         :style="secondaryButtonStyle"
         @click="handleFetchCalendars"
