@@ -92,7 +92,7 @@
         <button
           class="btn-small"
           :style="getWebhookButtonStyle()"
-          @click.stop="handleWebhookToggle"
+          @click.stop="handleWebhookAction"
         >
           {{ getWebhookButtonText() }}
         </button>
@@ -240,7 +240,7 @@ export default {
       default: () => ({})
     }
   },
-  emits: ['calendar-selected', 'calendar-preselected', 'fetch-calendars', 'continue', 'webhook-toggle'],
+  emits: ['calendar-selected', 'calendar-preselected', 'fetch-calendars', 'continue', 'activate-webhook', 'deactivate-webhook'],
   setup(props, { emit }) {
     const isLoading = ref(false);
     const isChanging = ref(false);
@@ -360,8 +360,13 @@ export default {
       emit('continue');
     };
 
-    const handleWebhookToggle = () => {
-      emit('webhook-toggle');
+    const handleWebhookAction = () => {
+      const status = normalizedWebhook.value?.status || normalizedWebhook.value?.renewal_status;
+      if (status === 'active') {
+        emit('deactivate-webhook');
+      } else {
+        emit('activate-webhook');
+      }
     };
 
     const getWebhookStatusText = (status) => {
@@ -530,7 +535,7 @@ export default {
       handleConfirmSelection,
       handleFetchCalendars,
       handleContinue,
-      handleWebhookToggle,
+      handleWebhookAction,
       getWebhookStatusText,
       getWebhookButtonText,
       getWebhookStatusStyle,

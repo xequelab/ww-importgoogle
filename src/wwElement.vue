@@ -134,7 +134,8 @@
         @calendar-selected="handleCalendarSelected"
         @fetch-calendars="handleFetchCalendars"
         @continue="handleContinueFromCalendar"
-        @webhook-toggle="handleWebhookToggle"
+        @activate-webhook="handleWebhookActivate"
+        @deactivate-webhook="handleWebhookDeactivate"
       />
     </div>
 
@@ -1580,16 +1581,16 @@ export default {
       step.value = 'select-period';
     };
 
-    const handleWebhookToggle = async () => {
+    const handleWebhookActivate = async () => {
       if (isEditing.value) return;
 
       const calendarId = activeCalendar.value?.calendar_id;
-      const action = isWebhookActive.value ? 'pause' : 'activate';
+      const action = 'activate';
 
-      console.log('🔔 Webhook Toggle:', { action, calendarId, activeCalendar: activeCalendar.value });
+      console.log('🔔 Webhook Activate:', { calendarId, activeCalendar: activeCalendar.value });
 
       if (!calendarId) {
-        console.error('❌ Erro: Nenhum calendário ativo encontrado. Certifique-se de selecionar um calendário primeiro.');
+        console.error('❌ Erro: Nenhum calendário ativo encontrado para ativar o webhook.');
         emit('trigger-event', { 
           name: 'fetch-error', 
           event: { message: 'Nenhum calendário selecionado. Selecione um calendário na aba "Calendário" primeiro.' } 
@@ -1597,29 +1598,17 @@ export default {
         return;
       }
 
-      // SEMPRE emitir o evento para permitir Workflows no WeWeb
-      // O usuário pode bindar esse evento e rodar a lógica inteira por fora se quiser
       emit('trigger-event', { 
         name: 'webhook-toggle', 
         event: { 
           action, 
-          calendarId,  // ⚠️ USE ESTE VALOR no workflow, não a variável selectedCalendarId
+          calendarId,
           calendar: activeCalendar.value,
           status: webhookStatus.value?.status 
         } 
       });
 
-      // Se for pausa, paramos aqui (por enquanto assumimos que o workflow lida ou não tem endpoint de pause)
-      if (action === 'pause') return;
-
-      // Lógica de Ativação interna (opcional)
-      // Só executa se o usuário tiver configurado o endpoint no componente
-      if (action === 'activate' && createWebhookEndpoint.value) {
-        if (!calendarId) {
-          console.error('No active calendar selected');
-          return;
-        }
-
+      if (createWebhookEndpoint.value) {
         if (!authToken.value) {
           emit('trigger-event', { name: 'fetch-error', event: { message: 'Token de autenticação não fornecido' } });
           return;
@@ -1634,9 +1623,7 @@ export default {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${authToken.value}`
             },
-            body: JSON.stringify({
-              calendarId
-            })
+            body: JSON.stringify({ calendarId })
           });
 
           if (!response.ok) {
@@ -1647,7 +1634,6 @@ export default {
           const result = await response.json();
 
           if (result.success) {
-            // Emite evento extra de sucesso se a chamada interna funcionou
              emit('trigger-event', { 
                name: 'webhook-toggle', 
                event: { 
@@ -1665,10 +1651,33 @@ export default {
         } finally {
           isRenewingToken.value = false;
         }
-      } else if (action === 'activate') {
-        // Se entrou aqui, é porque não tem endpoint configurado, então confiamos 100% no Workflow e logamos info
-        console.log('Webhook toggle clicked. Event emitted. Create Webhook Endpoint not configured, relying on Workflow.');
+      } else {
+        console.log('Webhook activate clicked. Event emitted. Create Webhook Endpoint not configured, relying on Workflow.');
       }
+    };
+
+    const handleWebhookDeactivate = () => {
+      if (isEditing.value) return;
+      
+      const calendarId = activeCalendar.value?.calendar_id;
+      const action = 'pause';
+
+      console.log('🔔 Webhook Deactivate:', { calendarId, activeCalendar: activeCalendar.value });
+
+       if (!calendarId) {
+        console.error('❌ Erro: Nenhum calendário ativo encontrado para desativar o webhook.');
+        return;
+      }
+
+      emit('trigger-event', { 
+        name: 'webhook-toggle', 
+        event: { 
+          action, 
+          calendarId,
+          calendar: activeCalendar.value,
+          status: webhookStatus.value?.status 
+        } 
+      });
     };
 
     const goToCalendarTab = () => {
@@ -1920,7 +1929,8 @@ export default {
       handleCalendarSelected,
       handleFetchCalendars,
       handleContinueFromCalendar,
-      handleWebhookToggle,
+      handleWebhookActivate,
+      handleWebhookDeactivate,
       goToCalendarTab,
       handleRevokeAuth,
       confirmRevokeAuth,
