@@ -94,23 +94,13 @@
                     </svg>
                   </button>
                   <button
-                    v-else-if="!isWebhookActive"
-                    class="checklist-action action-warning"
-                    @click="handleWebhookToggle"
+                    v-else
+                    class="checklist-action"
+                    @click="goToCalendarTab"
                   >
-                    Ativar Sincronização
+                    Gerenciar sincronização
                     <svg viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
-                    </svg>
-                  </button>
-                  <button
-                    v-else-if="isWebhookActive"
-                    class="checklist-action action-muted"
-                    @click="showPauseWebhookConfirm = true"
-                  >
-                    Pausar Sincronização
-                    <svg viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                     </svg>
                   </button>
                 </div>
@@ -365,30 +355,6 @@
     </div>
   </div>
 
-  <!-- Modal de confirmação: Pausar sincronização -->
-  <div v-if="showPauseWebhookConfirm" class="modal-overlay" @click="showPauseWebhookConfirm = false">
-    <div class="modal-content" @click.stop>
-      <div class="modal-header">
-        <div class="modal-icon modal-icon-info">
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-          </svg>
-        </div>
-        <h3 class="modal-title">Pausar Sincronização</h3>
-      </div>
-      <p class="modal-description">
-        Ao pausar a sincronização, novos agendamentos criados no app não serão enviados ao Google Calendar e vice-versa até que você reative.
-      </p>
-      <div class="modal-actions">
-        <button class="btn-modal btn-modal-secondary" @click="showPauseWebhookConfirm = false">
-          Cancelar
-        </button>
-        <button class="btn-modal btn-modal-primary" @click="confirmPauseWebhook">
-          Pausar Sincronização
-        </button>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -530,7 +496,6 @@ export default {
     const isFetchingCalendars = ref(false);
     const temporarySelectedCalendar = ref(null);
     const showRevokeConfirm = ref(false);
-    const showPauseWebhookConfirm = ref(false);
 
     // ===== Variáveis expostas =====
     const { value: currentStep, setValue: setCurrentStep } = wwLib.wwVariable.useComponentVariable({
@@ -1729,12 +1694,6 @@ export default {
       });
     };
 
-    const confirmPauseWebhook = () => {
-      console.log('⏸ Pausando webhook');
-      showPauseWebhookConfirm.value = false;
-      handleWebhookToggle();
-    };
-
     const getWebhookStatusLabel = (status) => {
       const statusMap = {
         'active': '✓ Ativo',
@@ -1965,12 +1924,10 @@ export default {
       goToCalendarTab,
       handleRevokeAuth,
       confirmRevokeAuth,
-      confirmPauseWebhook,
       getWebhookStatusLabel,
       getWebhookStatusTextStyle,
       renewToken,
       showRevokeConfirm,
-      showPauseWebhookConfirm,
       fetchEvents,
       importEvents,
       toggleEventSelection,
