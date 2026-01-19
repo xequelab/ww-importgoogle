@@ -81,11 +81,11 @@
               <div class="checklist-label">{{ isWebhookActive ? 'Agenda Sincronizada' : 'Agenda Não Sincronizada' }}</div>
               <div class="checklist-row-content">
                 <div v-if="activeCalendar" class="checklist-value">{{ activeCalendar.summary_override || activeCalendar.calendar_summary }}</div>
-                
-                <div class="checklist-actions" v-if="!activeCalendar || !isWebhookActive">
-                  <button 
-                    v-if="!activeCalendar" 
-                    class="checklist-action" 
+
+                <div class="checklist-actions">
+                  <button
+                    v-if="!activeCalendar"
+                    class="checklist-action"
                     @click="goToCalendarTab"
                   >
                     Selecionar agenda
@@ -93,14 +93,24 @@
                       <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                     </svg>
                   </button>
-                  <button 
-                    v-else-if="!isWebhookActive" 
-                    class="checklist-action action-warning" 
+                  <button
+                    v-else-if="!isWebhookActive"
+                    class="checklist-action action-warning"
                     @click="handleWebhookToggle"
                   >
                     Ativar Sincronização
                     <svg viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                  <button
+                    v-else-if="isWebhookActive"
+                    class="checklist-action action-muted"
+                    @click="showPauseWebhookConfirm = true"
+                  >
+                    Pausar Sincronização
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
                   </button>
                 </div>
@@ -329,6 +339,56 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de confirmação: Revogar acesso -->
+  <div v-if="showRevokeConfirm" class="modal-overlay" @click="showRevokeConfirm = false">
+    <div class="modal-content" @click.stop>
+      <div class="modal-header">
+        <div class="modal-icon modal-icon-warning">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h3 class="modal-title">Revogar Autorização</h3>
+      </div>
+      <p class="modal-description">
+        Ao revogar o acesso, você perderá a conexão com o Google Calendar e precisará autorizar novamente para usar as funcionalidades de sincronização.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-secondary" @click="showRevokeConfirm = false">
+          Cancelar
+        </button>
+        <button class="btn-modal btn-modal-danger" @click="confirmRevokeAuth">
+          Revogar Acesso
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmação: Pausar sincronização -->
+  <div v-if="showPauseWebhookConfirm" class="modal-overlay" @click="showPauseWebhookConfirm = false">
+    <div class="modal-content" @click.stop>
+      <div class="modal-header">
+        <div class="modal-icon modal-icon-info">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h3 class="modal-title">Pausar Sincronização</h3>
+      </div>
+      <p class="modal-description">
+        Ao pausar a sincronização, novos agendamentos criados no app não serão enviados ao Google Calendar e vice-versa até que você reative.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-secondary" @click="showPauseWebhookConfirm = false">
+          Cancelar
+        </button>
+        <button class="btn-modal btn-modal-primary" @click="confirmPauseWebhook">
+          Pausar Sincronização
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -469,6 +529,8 @@ export default {
     const isRenewingToken = ref(false);
     const isFetchingCalendars = ref(false);
     const temporarySelectedCalendar = ref(null);
+    const showRevokeConfirm = ref(false);
+    const showPauseWebhookConfirm = ref(false);
 
     // ===== Variáveis expostas =====
     const { value: currentStep, setValue: setCurrentStep } = wwLib.wwVariable.useComponentVariable({
@@ -1651,15 +1713,26 @@ export default {
 
     const handleRevokeAuth = () => {
       if (isEditing.value) return;
-      
+      showRevokeConfirm.value = true;
+    };
+
+    const confirmRevokeAuth = () => {
       console.log('🔓 Revogando autorização Google');
-      
+
+      showRevokeConfirm.value = false;
+
       emit('trigger-event', {
         name: 'revoke-auth',
         event: {
           email: userTokens.value?.email
         }
       });
+    };
+
+    const confirmPauseWebhook = () => {
+      console.log('⏸ Pausando webhook');
+      showPauseWebhookConfirm.value = false;
+      handleWebhookToggle();
     };
 
     const getWebhookStatusLabel = (status) => {
@@ -1890,9 +1963,14 @@ export default {
       handleContinueFromCalendar,
       handleWebhookToggle,
       goToCalendarTab,
+      handleRevokeAuth,
+      confirmRevokeAuth,
+      confirmPauseWebhook,
       getWebhookStatusLabel,
       getWebhookStatusTextStyle,
       renewToken,
+      showRevokeConfirm,
+      showPauseWebhookConfirm,
       fetchEvents,
       importEvents,
       toggleEventSelection,
@@ -2245,9 +2323,25 @@ export default {
 
   &.action-warning {
     color: #D97706;  /* Amber-600 */
-    
+
     &:hover {
       color: #B45309; /* Amber-700 */
+    }
+  }
+
+  &.action-danger {
+    color: #DC2626;  /* Red-600 */
+
+    &:hover {
+      color: #B91C1C; /* Red-700 */
+    }
+  }
+
+  &.action-muted {
+    color: #6B7280;  /* Gray-500 */
+
+    &:hover {
+      color: #4B5563; /* Gray-600 */
     }
   }
 }
@@ -2900,6 +2994,186 @@ export default {
 
     .status-item-details {
       font-size: 12px !important;
+    }
+  }
+}
+
+/* ===== MODAIS DE CONFIRMAÇÃO ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  &.modal-icon-warning {
+    background-color: #FEF3C7;
+    color: #F59E0B;
+  }
+
+  &.modal-icon-info {
+    background-color: #DBEAFE;
+    color: #3B82F6;
+  }
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1A202C;
+}
+
+.modal-description {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4A5568;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-modal {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-modal-secondary {
+  background-color: #F7FAFC;
+  color: #4A5568;
+  border: 1px solid #E2E8F0;
+
+  &:hover {
+    background-color: #EDF2F7;
+  }
+}
+
+.btn-modal-primary {
+  background-color: #3B82F6;
+  color: white;
+
+  &:hover {
+    background-color: #2563EB;
+  }
+}
+
+.btn-modal-danger {
+  background-color: #EF4444;
+  color: white;
+
+  &:hover {
+    background-color: #DC2626;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .modal-header {
+    gap: 12px;
+  }
+
+  .modal-icon {
+    width: 40px;
+    height: 40px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .modal-title {
+    font-size: 16px;
+  }
+
+  .modal-description {
+    font-size: 13px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+
+    .btn-modal {
+      width: 100%;
     }
   }
 }

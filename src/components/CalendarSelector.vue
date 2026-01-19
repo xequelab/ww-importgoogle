@@ -101,11 +101,19 @@
 
     <!-- Legenda de Sincronização (quando ativo) -->
     <div v-if="hasActiveCalendar && isWebhookSynced" class="sync-info">
-      <svg viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-        <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-      </svg>
-      <span>Sincronização bidirecional ativa: agendamentos criados aqui são enviados ao Google e eventos do Google são recebidos automaticamente.</span>
+      <div class="sync-info-row">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <span>Sincronização bidirecional ativa: agendamentos criados aqui são enviados ao Google e eventos do Google são recebidos automaticamente.</span>
+      </div>
+      <div v-if="lastSyncTime" class="sync-timestamp">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ lastSyncTimeText }}</span>
+      </div>
     </div>
 
     <!-- Ações -->
@@ -279,6 +287,30 @@ export default {
       if (!wb) return false;
       const status = wb.status || wb.renewal_status;
       return status === 'active';
+    });
+
+    // Última sincronização
+    const lastSyncTime = computed(() => {
+      const wb = normalizedWebhook.value;
+      if (!wb) return null;
+      return wb.last_sync || wb.lastSync || null;
+    });
+
+    const lastSyncTimeText = computed(() => {
+      if (!lastSyncTime.value) return '';
+
+      const now = new Date();
+      const syncDate = new Date(lastSyncTime.value);
+      const diffMs = now - syncDate;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'Sincronizado agora';
+      if (diffMins < 60) return `Sincronizado há ${diffMins} min`;
+      if (diffHours < 24) return `Sincronizado há ${diffHours}h`;
+      if (diffDays === 1) return 'Sincronizado ontem';
+      return `Sincronizado há ${diffDays} dias`;
     });
 
     const handleCalendarClick = (calendar) => {
@@ -492,6 +524,8 @@ export default {
       isWebhookSynced,
       normalizedWebhook,
       temporarySelectedId,
+      lastSyncTime,
+      lastSyncTimeText,
       handleCalendarClick,
       handleConfirmSelection,
       handleFetchCalendars,
@@ -781,8 +815,8 @@ export default {
 /* Legenda de Sincronização */
 .sync-info {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   padding: 12px 16px;
   background: rgba(56, 161, 105, 0.08);
   border-left: 3px solid #38A169;
@@ -793,7 +827,13 @@ export default {
   color: #2D3748;
 }
 
-.sync-info svg {
+.sync-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sync-info-row svg {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
@@ -801,8 +841,24 @@ export default {
   margin-top: 2px;
 }
 
-.sync-info span {
+.sync-info-row span {
   flex: 1;
+}
+
+.sync-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #059669;
+  font-weight: 500;
+  padding-left: 28px;
+}
+
+.sync-timestamp svg {
+  width: 14px;
+  height: 14px;
+  color: #059669;
 }
 
 /* Responsividade */
