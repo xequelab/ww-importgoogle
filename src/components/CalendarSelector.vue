@@ -92,7 +92,7 @@
         <button
           class="btn-small"
           :style="getWebhookButtonStyle()"
-          @click="handleWebhookToggle"
+          @click.stop="handleWebhookToggle"
         >
           {{ getWebhookButtonText() }}
         </button>
