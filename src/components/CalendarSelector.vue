@@ -481,7 +481,7 @@ export default {
     }));
 
     const titleStyle = computed(() => ({
-      fontSize: props.styles.titleFontSize || '18px',
+      fontSize: props.styles.titleFontSize || '20px',
       fontWeight: '600',
       color: props.styles.textColor || '#1A202C',
       margin: '0 0 4px 0'
@@ -508,7 +508,7 @@ export default {
       backgroundColor: props.styles.primaryColor || '#081B4E',
       color: '#FFFFFF',
       padding: props.styles.buttonPadding || '12px 24px',
-      fontSize: props.styles.buttonFontSize || '16px',
+      fontSize: props.styles.buttonFontSize || '14px',
       fontWeight: props.styles.buttonFontWeight || '600',
       borderRadius: '8px',
       border: 'none',
@@ -519,7 +519,7 @@ export default {
       backgroundColor: 'transparent',
       color: props.styles.primaryColor || '#081B4E',
       padding: props.styles.buttonPadding || '12px 24px',
-      fontSize: props.styles.buttonFontSize || '16px',
+      fontSize: props.styles.buttonFontSize || '14px',
       fontWeight: props.styles.buttonFontWeight || '600',
       borderRadius: '8px',
       border: `2px solid ${props.styles.primaryColor || '#081B4E'}`,
@@ -557,7 +557,7 @@ export default {
     }));
 
     const modalTextStyle = computed(() => ({
-      fontSize: '16px',
+      fontSize: '14px',
       color: props.styles.textMutedColor || '#4A5568',
       lineHeight: '1.6'
     }));
@@ -729,7 +729,7 @@ export default {
 }
 
 .calendar-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #1A202C;
   display: flex;
@@ -745,13 +745,13 @@ export default {
   background-color: #DBEAFE;
   color: #1E40AF;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .calendar-meta {
-  font-size: 14px;
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -765,7 +765,7 @@ export default {
   background-color: #38A169;
   color: white;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -846,13 +846,13 @@ export default {
 }
 
 .webhook-title-small {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #2D3748;
 }
 
 .webhook-status-badge {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 4px;
@@ -861,7 +861,7 @@ export default {
 
 .btn-small {
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: 13px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
@@ -881,7 +881,7 @@ export default {
   border-left: 3px solid #38A169;
   border-radius: 6px;
   margin-top: 16px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
   color: #2D3748;
 }
@@ -908,7 +908,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 12px;
   color: #059669;
   font-weight: 500;
   padding-left: 28px;
