@@ -9,18 +9,7 @@
         </svg>
       </div>
       <div class="header-content">
-        <div class="title-with-badge">
-          <h2 class="selector-title" :style="titleStyle">{{ title }}</h2>
-          <span class="google-badge">
-            <svg width="14" height="14" viewBox="0 0 48 48">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-            </svg>
-            Google Calendar
-          </span>
-        </div>
+        <h2 class="selector-title" :style="titleStyle">{{ title }}</h2>
         <p class="selector-description" :style="descriptionStyle">{{ description }}</p>
       </div>
     </div>
@@ -492,7 +481,7 @@ export default {
     }));
 
     const titleStyle = computed(() => ({
-      fontSize: props.styles.titleFontSize || '20px',
+      fontSize: props.styles.titleFontSize || '18px',
       fontWeight: '600',
       color: props.styles.textColor || '#1A202C',
       margin: '0 0 4px 0'
@@ -519,7 +508,7 @@ export default {
       backgroundColor: props.styles.primaryColor || '#081B4E',
       color: '#FFFFFF',
       padding: props.styles.buttonPadding || '12px 24px',
-      fontSize: props.styles.buttonFontSize || '14px',
+      fontSize: props.styles.buttonFontSize || '16px',
       fontWeight: props.styles.buttonFontWeight || '600',
       borderRadius: '8px',
       border: 'none',
@@ -530,7 +519,7 @@ export default {
       backgroundColor: 'transparent',
       color: props.styles.primaryColor || '#081B4E',
       padding: props.styles.buttonPadding || '12px 24px',
-      fontSize: props.styles.buttonFontSize || '14px',
+      fontSize: props.styles.buttonFontSize || '16px',
       fontWeight: props.styles.buttonFontWeight || '600',
       borderRadius: '8px',
       border: `2px solid ${props.styles.primaryColor || '#081B4E'}`,
@@ -568,7 +557,7 @@ export default {
     }));
 
     const modalTextStyle = computed(() => ({
-      fontSize: '14px',
+      fontSize: '16px',
       color: props.styles.textMutedColor || '#4A5568',
       lineHeight: '1.6'
     }));
@@ -672,32 +661,6 @@ export default {
   min-width: 0;
 }
 
-.title-with-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-
-.google-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
-  white-space: nowrap;
-}
-
-.google-badge svg {
-  flex-shrink: 0;
-}
-
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -766,7 +729,7 @@ export default {
 }
 
 .calendar-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #1A202C;
   display: flex;
@@ -782,13 +745,13 @@ export default {
   background-color: #DBEAFE;
   color: #1E40AF;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .calendar-meta {
-  font-size: 12px;
+  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -802,7 +765,7 @@ export default {
   background-color: #38A169;
   color: white;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -883,13 +846,13 @@ export default {
 }
 
 .webhook-title-small {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #2D3748;
 }
 
 .webhook-status-badge {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 4px;
@@ -898,7 +861,7 @@ export default {
 
 .btn-small {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 14px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
@@ -918,7 +881,7 @@ export default {
   border-left: 3px solid #38A169;
   border-radius: 6px;
   margin-top: 16px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   color: #2D3748;
 }
@@ -945,7 +908,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 14px;
   color: #059669;
   font-weight: 500;
   padding-left: 28px;
@@ -1006,17 +969,6 @@ export default {
 
   .selector-description {
     font-size: 13px !important;
-  }
-
-  .google-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-    gap: 4px;
-  }
-
-  .google-badge svg {
-    width: 12px;
-    height: 12px;
   }
 
   .calendar-item {
