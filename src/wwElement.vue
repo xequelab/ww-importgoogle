@@ -298,9 +298,9 @@
         <button
           class="btn btn-primary"
           :style="primaryButtonStyle"
-          @click="handleClose"
+          @click="backToStart"
         >
-          {{ buttonClose }}
+          {{ buttonBack }}
         </button>
       </div>
     </div>
@@ -1686,6 +1686,11 @@ export default {
       });
     };
 
+    const backToStart = () => {
+      if (isEditing.value) return;
+      step.value = 'select-period';
+    };
+
     const reset = () => {
       step.value = 'select-period';
       timeMin.value = null;
@@ -1899,6 +1904,7 @@ export default {
       goBack,
       formatExpiryDate,
       handleClose,
+      backToStart,
       reset,
       goToStep
     };
