@@ -369,6 +369,25 @@ export default {
       }
       /* wwEditor:end */
     },
+    timeZone: {
+      label: { en: 'Time Zone', pt: 'Fuso Horário' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'America/Sao_Paulo',
+      options: {
+        placeholder: 'America/Sao_Paulo'
+      },
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'Fuso horário IANA para formatação de datas (ex: America/Sao_Paulo, America/New_York, Europe/London)'
+      },
+      propertyHelp: {
+        tooltip: 'Define o fuso horário usado para exibir as datas dos eventos. Use formato IANA Timezone Database (ex: America/Sao_Paulo)'
+      }
+      /* wwEditor:end */
+    },
 
     // ===== TEXTOS =====
     // ===== TEXTOS - AUTENTICAÇÃO =====

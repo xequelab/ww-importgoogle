@@ -215,6 +215,7 @@
             :styles="eventItemStyles"
             :checkbox-styles="checkboxStyles"
             :badge-colors="badgeColors"
+            :time-zone="content.timeZone"
             @toggle="toggleEventSelection"
             @toggle-group="toggleGroupSelection"
           />
@@ -228,6 +229,7 @@
             :styles="eventItemStyles"
             :checkbox-styles="checkboxStyles"
             :badge-colors="badgeColors"
+            :time-zone="content.timeZone"
             @toggle="toggleEventSelection(item.event.google_event_id)"
           />
         </template>

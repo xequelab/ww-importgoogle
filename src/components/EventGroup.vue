@@ -79,7 +79,8 @@ export default {
     groupTitle: { type: String, required: true },
     events: { type: Array, required: true },
     selectedIds: { type: Array, default: () => [] },
-    importedIds: { type: Set, default: () => new Set() }
+    importedIds: { type: Set, default: () => new Set() },
+    timeZone: { type: String, default: 'America/Sao_Paulo' }
   },
   emits: ['toggle', 'toggle-group'],
   setup(props, { emit }) {
@@ -104,7 +105,7 @@ export default {
       const dates = props.events.map(e => new Date(e.data_inicio)).sort((a, b) => a - b);
       const first = dates[0];
       const last = dates[dates.length - 1];
-      const fmt = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      const fmt = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: props.timeZone || 'America/Sao_Paulo' });
       return first.getTime() === last.getTime() ? fmt(first) : `${fmt(first)} - ${fmt(last)}`;
     });
 
@@ -126,7 +127,8 @@ export default {
         day: '2-digit',
         month: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: props.timeZone || 'America/Sao_Paulo'
       }).replace(',', ' às');
     };
 

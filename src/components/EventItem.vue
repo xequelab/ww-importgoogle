@@ -106,6 +106,10 @@ export default {
     badgeColors: {
       type: Object,
       default: () => ({})
+    },
+    timeZone: {
+      type: String,
+      default: 'America/Sao_Paulo'
     }
   },
   emits: ['toggle'],
@@ -131,7 +135,8 @@ export default {
         day: '2-digit',
         month: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: props.timeZone || 'America/Sao_Paulo'
       };
 
       return date.toLocaleDateString('pt-BR', options).replace(',', ' às');
