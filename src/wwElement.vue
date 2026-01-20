@@ -1581,102 +1581,55 @@ export default {
       step.value = 'select-period';
     };
 
-    const handleWebhookActivate = async () => {
+    const handleWebhookActivate = () => {
       if (isEditing.value) return;
 
       const calendarId = activeCalendar.value?.calendar_id;
-      const action = 'activate';
 
       console.log('🔔 Webhook Activate:', { calendarId, activeCalendar: activeCalendar.value });
 
       if (!calendarId) {
         console.error('❌ Erro: Nenhum calendário ativo encontrado para ativar o webhook.');
-        emit('trigger-event', { 
-          name: 'fetch-error', 
-          event: { message: 'Nenhum calendário selecionado. Selecione um calendário na aba "Calendário" primeiro.' } 
+        emit('trigger-event', {
+          name: 'webhook-error',
+          event: { message: 'Nenhum calendário selecionado. Selecione um calendário na aba "Calendário" primeiro.' }
         });
         return;
       }
 
-      emit('trigger-event', { 
-        name: 'webhook-toggle', 
-        event: { 
-          action, 
+      // Emite evento específico de ativação
+      emit('trigger-event', {
+        name: 'webhook-activate',
+        event: {
           calendarId,
-          calendar: activeCalendar.value,
-          status: webhookStatus.value?.status 
-        } 
+          calendar: activeCalendar.value
+        }
       });
-
-      if (createWebhookEndpoint.value) {
-        if (!authToken.value) {
-          emit('trigger-event', { name: 'fetch-error', event: { message: 'Token de autenticação não fornecido' } });
-          return;
-        }
-
-        try {
-          isRenewingToken.value = true;
-          
-          const response = await fetch(createWebhookEndpoint.value, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authToken.value}`
-            },
-            body: JSON.stringify({ calendarId })
-          });
-
-          if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Erro na API (${response.status}): ${errText}`);
-          }
-
-          const result = await response.json();
-
-          if (result.success) {
-             emit('trigger-event', { 
-               name: 'webhook-toggle', 
-               event: { 
-                 action: 'activated_success', 
-                 result 
-               } 
-             });
-          } else {
-            throw new Error(result.error || 'Erro desconhecido ao criar webhook');
-          }
-
-        } catch (error) {
-          console.error('Erro ao ativar webhook internamente:', error);
-          emit('trigger-event', { name: 'fetch-error', event: { message: error.message } });
-        } finally {
-          isRenewingToken.value = false;
-        }
-      } else {
-        console.log('Webhook activate clicked. Event emitted. Create Webhook Endpoint not configured, relying on Workflow.');
-      }
     };
 
     const handleWebhookDeactivate = () => {
       if (isEditing.value) return;
-      
+
       const calendarId = activeCalendar.value?.calendar_id;
-      const action = 'pause';
 
       console.log('🔔 Webhook Deactivate:', { calendarId, activeCalendar: activeCalendar.value });
 
-       if (!calendarId) {
+      if (!calendarId) {
         console.error('❌ Erro: Nenhum calendário ativo encontrado para desativar o webhook.');
+        emit('trigger-event', {
+          name: 'webhook-error',
+          event: { message: 'Nenhum calendário ativo encontrado para desativar.' }
+        });
         return;
       }
 
-      emit('trigger-event', { 
-        name: 'webhook-toggle', 
-        event: { 
-          action, 
+      // Emite evento específico de desativação/pausa
+      emit('trigger-event', {
+        name: 'webhook-deactivate',
+        event: {
           calendarId,
-          calendar: activeCalendar.value,
-          status: webhookStatus.value?.status 
-        } 
+          calendar: activeCalendar.value
+        }
       });
     };
 

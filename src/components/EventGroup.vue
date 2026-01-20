@@ -276,11 +276,11 @@ export default {
   font-weight: 500;
   color: #38A169;
   flex-shrink: 0;
+}
 
-  svg {
-    width: 14px;
-    height: 14px;
-  }
+.event-imported-badge svg {
+  width: 14px;
+  height: 14px;
 }
 
 .event-imported {

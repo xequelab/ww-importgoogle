@@ -81,9 +81,29 @@ export default {
       default: false
     },
     {
-      name: 'webhook-toggle',
-      label: { en: 'On webhook toggle', pt: 'Ao alternar webhook' },
-      event: {},
+      name: 'webhook-activate',
+      label: { en: 'On webhook activate', pt: 'Ao ativar webhook' },
+      event: {
+        calendarId: '',
+        calendar: {}
+      },
+      default: false
+    },
+    {
+      name: 'webhook-deactivate',
+      label: { en: 'On webhook deactivate', pt: 'Ao desativar webhook' },
+      event: {
+        calendarId: '',
+        calendar: {}
+      },
+      default: false
+    },
+    {
+      name: 'webhook-error',
+      label: { en: 'On webhook error', pt: 'Ao erro no webhook' },
+      event: {
+        message: ''
+      },
       default: false
     },
     {
@@ -351,6 +371,48 @@ export default {
     },
 
     // ===== TEXTOS =====
+    // ===== TEXTOS - AUTENTICAÇÃO =====
+    titleAuth: {
+      label: { en: 'Auth - Title', pt: 'Auth - Título' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Conectar Google Calendar',
+      options: {
+        placeholder: 'Conectar Google Calendar'
+      }
+    },
+    descriptionAuth: {
+      label: { en: 'Auth - Description', pt: 'Auth - Descrição' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Para importar eventos e criar sincronização automática, conecte sua conta do Google Calendar.',
+      options: {
+        placeholder: 'Para importar eventos...'
+      }
+    },
+    buttonAuth: {
+      label: { en: 'Auth - Button', pt: 'Auth - Botão' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Conectar com Google',
+      options: {
+        placeholder: 'Conectar com Google'
+      }
+    },
+    labelAuthenticating: {
+      label: { en: 'Auth - Authenticating', pt: 'Auth - Autenticando' },
+      type: 'Text',
+      section: 'settings',
+      bindable: true,
+      defaultValue: 'Autenticando...',
+      options: {
+        placeholder: 'Autenticando...'
+      }
+    },
+
     titleStep1: {
       label: { en: 'Title - Step 1', pt: 'Título - Etapa 1' },
       type: 'Text',
