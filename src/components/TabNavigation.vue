@@ -75,7 +75,7 @@ export default {
         fontSize: props.styles.baseFontSize || '14px',
         fontWeight: isActive ? '600' : '500',
         cursor: isDisabled ? 'not-allowed' : 'pointer',
-        borderBottom: isActive ? `3px solid ${props.styles.primaryColor || '#081B4E'}` : '3px solid transparent',
+        borderBottom: isActive ? `2px solid ${props.styles.primaryColor || '#081B4E'}` : '2px solid transparent',
         transition: 'all 0.2s ease',
         display: 'flex',
         alignItems: 'center',

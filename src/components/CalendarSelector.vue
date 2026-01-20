@@ -2,15 +2,25 @@
   <div class="calendar-selector" :style="containerStyle">
     <div class="selector-header">
       <div class="header-icon" :style="iconStyle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="16" y1="2" x2="16" y2="6"></line>
-          <line x1="8" y1="2" x2="8" y2="6"></line>
-          <line x1="3" y1="10" x2="21" y2="10"></line>
+        <!-- Google Calendar Logo -->
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/>
+          <path d="M12 13c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
         </svg>
       </div>
-      <div>
-        <h2 class="selector-title" :style="titleStyle">{{ title }}</h2>
+      <div class="header-content">
+        <div class="title-with-badge">
+          <h2 class="selector-title" :style="titleStyle">{{ title }}</h2>
+          <span class="google-badge">
+            <svg width="14" height="14" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Google Calendar
+          </span>
+        </div>
         <p class="selector-description" :style="descriptionStyle">{{ description }}</p>
       </div>
     </div>
@@ -21,7 +31,7 @@
       <p :style="mutedTextStyle">{{ loadingText }}</p>
     </div>
 
-    <!-- Lista de calendários -->
+    <!-- Lista de agendas -->
     <div v-else-if="calendars.length > 0" class="calendars-list">
       <div
         v-for="calendar in calendars"
@@ -169,6 +179,32 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Webhook (Ativar/Pausar) -->
+    <div v-if="showWebhookModal" class="modal-overlay">
+      <div class="modal-content" :style="modalStyle">
+        <h3 :style="modalTitleStyle">
+          {{ webhookModalAction === 'activate' ? 'Ativar Sincronização' : 'Pausar Sincronização' }}
+        </h3>
+        <p :style="modalTextStyle">
+          {{ webhookModalAction === 'activate'
+            ? 'Ao ativar, seus eventos serão mantidos sincronizados automaticamente entre as duas plataformas.'
+            : 'Ao pausar, a sincronização automática será interrompida. Você poderá reativá-la a qualquer momento.'
+          }}
+        </p>
+        <p v-if="webhookModalAction === 'deactivate'" :style="modalTextStyle" style="margin-top: 12px; font-weight: 500; color: #C53030;">
+          Seus eventos anteriormente sincronizados permanecerão, mas novos eventos não serão mais sincronizados automaticamente.
+        </p>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" :style="secondaryButtonStyle" @click="showWebhookModal = false">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" :style="primaryButtonStyle" @click="finalizeWebhookAction">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -184,23 +220,23 @@ export default {
     },
     title: {
       type: String,
-      default: 'Selecionar Calendário'
+      default: 'Selecionar Agenda'
     },
     description: {
       type: String,
-      default: 'Escolha qual calendário do Google deseja sincronizar com seus agendamentos.'
+      default: 'Escolha qual agenda do Google deseja sincronizar com seus agendamentos.'
     },
     loadingText: {
       type: String,
-      default: 'Buscando calendários...'
+      default: 'Buscando agendas...'
     },
     emptyText: {
       type: String,
-      default: 'Nenhum calendário encontrado. Clique no botão abaixo para buscar seus calendários do Google.'
+      default: 'Nenhuma agenda encontrada. Clique no botão abaixo para buscar suas agendas do Google.'
     },
     fetchButtonText: {
       type: String,
-      default: 'Buscar Calendários'
+      default: 'Buscar Agendas'
     },
     continueButtonText: {
       type: String,
@@ -324,6 +360,8 @@ export default {
     };
 
     const showConfirmModal = ref(false);
+    const showWebhookModal = ref(false);
+    const webhookModalAction = ref(null); // 'activate' ou 'deactivate'
 
     const handleConfirmSelection = () => {
       if (isChanging.value) return;
@@ -342,7 +380,7 @@ export default {
 
     // Watch para limpar seleção temporária quando o banco atualizar
     watch(() => props.calendars, (newCalendars) => {
-      // Se algum calendário agora tem recebe_agendamentos true, limpa a seleção temporária
+      // Se alguma agenda agora tem recebe_agendamentos true, limpa a seleção temporária
       if (newCalendars.some(cal => cal.recebe_agendamentos === true)) {
         temporarySelectedId.value = null;
         isChanging.value = false;
@@ -363,10 +401,22 @@ export default {
     const handleWebhookAction = () => {
       const status = normalizedWebhook.value?.status || normalizedWebhook.value?.renewal_status;
       if (status === 'active') {
-        emit('deactivate-webhook');
+        webhookModalAction.value = 'deactivate';
+        showWebhookModal.value = true;
       } else {
-        emit('activate-webhook');
+        webhookModalAction.value = 'activate';
+        showWebhookModal.value = true;
       }
+    };
+
+    const finalizeWebhookAction = () => {
+      if (webhookModalAction.value === 'activate') {
+        emit('activate-webhook');
+      } else if (webhookModalAction.value === 'deactivate') {
+        emit('deactivate-webhook');
+      }
+      showWebhookModal.value = false;
+      webhookModalAction.value = null;
     };
 
     const getWebhookStatusText = (status) => {
@@ -427,15 +477,18 @@ export default {
     }));
 
     const iconStyle = computed(() => ({
-      width: '64px',
-      height: '64px',
+      width: '48px',
+      height: '48px',
+      minWidth: '48px',
+      minHeight: '48px',
       backgroundColor: `${props.styles.primaryColor || '#081B4E'}15`,
       color: props.styles.primaryColor || '#081B4E',
       borderRadius: '50%',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '16px'
+      padding: '12px',
+      flexShrink: 0
     }));
 
     const titleStyle = computed(() => ({
@@ -552,6 +605,9 @@ export default {
       webhookSectionStyle,
       showConfirmModal,
       finalizeSelection,
+      showWebhookModal,
+      webhookModalAction,
+      finalizeWebhookAction,
       modalStyle,
       modalTitleStyle,
       modalTextStyle
@@ -598,13 +654,48 @@ export default {
 
 .selector-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
+}
+
+.header-icon {
+  flex-shrink: 0;
 }
 
 .header-icon svg {
   width: 100%;
   height: 100%;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.google-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  white-space: nowrap;
+}
+
+.google-badge svg {
+  flex-shrink: 0;
 }
 
 .loading-container {
@@ -909,9 +1000,23 @@ export default {
     gap: 12px;
   }
 
-  .header-icon {
-    width: 32px;
-    height: 32px;
+  .selector-title {
+    font-size: 16px !important;
+  }
+
+  .selector-description {
+    font-size: 13px !important;
+  }
+
+  .google-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    gap: 4px;
+  }
+
+  .google-badge svg {
+    width: 12px;
+    height: 12px;
   }
 
   .calendar-item {

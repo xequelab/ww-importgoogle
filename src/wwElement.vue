@@ -112,7 +112,7 @@
       </div>
     </div>
 
-    <!-- ABA 2: Seleção de Calendário -->
+    <!-- ABA 2: Seleção de Agenda -->
     <div v-else-if="activeTab === 'calendar'" class="tab-content">
       <CalendarSelector
         :calendars="userCalendars"
@@ -520,7 +520,7 @@ export default {
       defaultValue: 0
     });
 
-    // Variáveis do calendário selecionado
+    // Variáveis da agenda selecionada
     const { value: selectedCalendarId, setValue: setSelectedCalendarId } = wwLib.wwVariable.useComponentVariable({
       uid: props.uid,
       name: 'selectedCalendarId',
@@ -542,12 +542,12 @@ export default {
       defaultValue: null
     });
 
-    // Computed para o calendário ativo (apenas do banco, não temporário)
+    // Computed para a agenda ativa (apenas do banco, não temporário)
     const activeCalendar = computed(() => {
       return userCalendars.value.find(cal => cal.recebe_agendamentos === true) || null;
     });
 
-    // Sincronizar calendário ativo do BANCO com variáveis expostas
+    // Sincronizar agenda ativa do BANCO com variáveis expostas
     watch(activeCalendar, (calendar) => {
       if (calendar) {
         setSelectedCalendarId(calendar.calendar_id || null);
@@ -568,7 +568,7 @@ export default {
         setSelectedCalendarName(calendar.summary_override || calendar.calendar_summary || null);
         setSelectedCalendarObject(calendar);
       } else if (!activeCalendar.value) {
-        // Só limpa se não houver calendário ativo no banco
+        // Só limpa se não houver agenda ativa no banco
         setSelectedCalendarId(null);
         setSelectedCalendarName(null);
         setSelectedCalendarObject(null);
@@ -578,7 +578,7 @@ export default {
     // Limpar seleção temporária quando o banco atualizar
     watch(userCalendars, (newCalendars) => {
       if (temporarySelectedCalendar.value) {
-        // Se o calendário temporário agora tem recebe_agendamentos true, limpa
+        // Se a agenda temporária agora tem recebe_agendamentos true, limpa
         const temp = temporarySelectedCalendar.value;
         const updated = newCalendars.find(cal => cal.id === temp.id);
         if (updated && updated.recebe_agendamentos === true) {
@@ -616,12 +616,12 @@ export default {
     const buttonAuth = computed(() => props.content?.buttonAuth || 'Conectar com Google');
     const labelAuthenticating = computed(() => props.content?.labelAuthenticating || 'Autenticando...');
 
-    // Textos - Calendário
-    const titleSelectCalendar = computed(() => props.content?.titleSelectCalendar || 'Selecionar Calendário');
-    const descriptionSelectCalendar = computed(() => props.content?.descriptionSelectCalendar || 'Escolha qual calendário do Google deseja sincronizar com seus agendamentos.');
-    const labelFetchCalendars = computed(() => props.content?.labelFetchCalendars || 'Buscar Calendários');
-    const labelNoCalendars = computed(() => props.content?.labelNoCalendars || 'Nenhum calendário encontrado. Clique no botão abaixo para buscar seus calendários do Google.');
-    const labelLoadingCalendars = computed(() => props.content?.labelLoadingCalendars || 'Buscando calendários...');
+    // Textos - Agenda
+    const titleSelectCalendar = computed(() => props.content?.titleSelectCalendar || 'Selecionar Agenda');
+    const descriptionSelectCalendar = computed(() => props.content?.descriptionSelectCalendar || 'Escolha qual agenda do Google deseja sincronizar com seus agendamentos.');
+    const labelFetchCalendars = computed(() => props.content?.labelFetchCalendars || 'Buscar Agendas');
+    const labelNoCalendars = computed(() => props.content?.labelNoCalendars || 'Nenhuma agenda encontrada. Clique no botão abaixo para buscar suas agendas do Google.');
+    const labelLoadingCalendars = computed(() => props.content?.labelLoadingCalendars || 'Buscando agendas...');
     const buttonContinueCalendar = computed(() => props.content?.buttonContinueCalendar || 'Continuar');
     const buttonConfirmCalendar = computed(() => props.content?.buttonConfirmCalendar || 'Confirmar Seleção');
 
@@ -650,7 +650,7 @@ export default {
 
     // ===== Textos - Abas =====
     const tabLabelAuth = computed(() => props.content?.tabLabelAuth || 'Conexão');
-    const tabLabelCalendar = computed(() => props.content?.tabLabelCalendar || 'Calendário');
+    const tabLabelCalendar = computed(() => props.content?.tabLabelCalendar || 'Agenda');
     const tabLabelImport = computed(() => props.content?.tabLabelImport || 'Importar');
 
     // ===== Textos - Webhook =====
@@ -671,7 +671,7 @@ export default {
     const labelRequirement1Title = computed(() => props.content?.labelRequirement1Title || '1. Autorização Google');
     const labelRequirement1Description = computed(() => props.content?.labelRequirement1Description || 'Conecte sua conta do Google');
     const labelRequirement2Title = computed(() => props.content?.labelRequirement2Title || '2. Agenda Selecionada');
-    const labelRequirement2Description = computed(() => props.content?.labelRequirement2Description || 'Escolha qual calendário sincronizar');
+    const labelRequirement2Description = computed(() => props.content?.labelRequirement2Description || 'Escolha qual agenda sincronizar');
     const labelSelectCalendarButton = computed(() => props.content?.labelSelectCalendarButton || 'Selecionar Agenda');
     const labelConnectionComplete = computed(() => props.content?.labelConnectionComplete || '✓ Integração configurada com sucesso! Você já pode importar eventos.');
 
@@ -858,7 +858,7 @@ export default {
       }
     ]);
 
-    // Sincronizar aba ativa com autenticação e calendário
+    // Sincronizar aba ativa com autenticação e agenda
     watch([isAuthenticated, hasActiveCalendar], ([authenticated, hasCalendar]) => {
       if (isEditing.value) return;
 
@@ -867,7 +867,7 @@ export default {
         activeTab.value = 'auth';
       }
 
-      // Se está autenticado mas não tem calendário e está na aba de importação, volta para calendário
+      // Se está autenticado mas não tem agenda e está na aba de importação, volta para agenda
       if (authenticated && !hasCalendar && activeTab.value === 'import') {
         activeTab.value = 'calendar';
       }
@@ -1491,7 +1491,7 @@ export default {
     const handleCalendarPreselected = (calendar) => {
       if (isEditing.value) return;
 
-      // Marca calendário como temporariamente selecionado (apenas para variáveis)
+      // Marca agenda como temporariamente selecionada (apenas para variáveis)
       temporarySelectedCalendar.value = calendar;
     };
 
@@ -1500,7 +1500,7 @@ export default {
 
       const calendarId = calendar?.calendar_id;
       
-      console.log('📅 Calendário selecionado:', { calendarId, name: calendar?.summary_override || calendar?.calendar_summary });
+      console.log('📅 Agenda selecionada:', { calendarId, name: calendar?.summary_override || calendar?.calendar_summary });
 
       // IMPORTANTE: Emitir evento ANTES de limpar temporário
       // para evitar race condition com o watch
@@ -1545,10 +1545,10 @@ export default {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          throw new Error(data.error || 'Erro ao buscar calendários');
+          throw new Error(data.error || 'Erro ao buscar agendas');
         }
 
-        console.log('✅ Calendários buscados com sucesso:', data.calendars?.length || 0);
+        console.log('✅ Agendas buscadas com sucesso:', data.calendars?.length || 0);
         console.log('⚠️ IMPORTANTE: Configure um workflow no WeWeb para recarregar a coleção userCalendars após este evento');
 
         emit('trigger-event', {
@@ -1561,7 +1561,7 @@ export default {
         });
 
       } catch (error) {
-        console.error('Erro ao buscar calendários:', error);
+        console.error('Erro ao buscar agendas:', error);
 
         emit('trigger-event', {
           name: 'calendars-fetch-error',
@@ -1589,10 +1589,10 @@ export default {
       console.log('🔔 Webhook Activate:', { calendarId, activeCalendar: activeCalendar.value });
 
       if (!calendarId) {
-        console.error('❌ Erro: Nenhum calendário ativo encontrado para ativar o webhook.');
+        console.error('❌ Erro: Nenhuma agenda ativa encontrada para ativar o webhook.');
         emit('trigger-event', {
           name: 'webhook-error',
-          event: { message: 'Nenhum calendário selecionado. Selecione um calendário na aba "Calendário" primeiro.' }
+          event: { message: 'Nenhuma agenda selecionada. Selecione uma agenda na aba "Agenda" primeiro.' }
         });
         return;
       }
@@ -1615,10 +1615,10 @@ export default {
       console.log('🔔 Webhook Deactivate:', { calendarId, activeCalendar: activeCalendar.value });
 
       if (!calendarId) {
-        console.error('❌ Erro: Nenhum calendário ativo encontrado para desativar o webhook.');
+        console.error('❌ Erro: Nenhuma agenda ativa encontrada para desativar o webhook.');
         emit('trigger-event', {
           name: 'webhook-error',
-          event: { message: 'Nenhum calendário ativo encontrado para desativar.' }
+          event: { message: 'Nenhuma agenda ativa encontrada para desativar.' }
         });
         return;
       }
@@ -1713,7 +1713,7 @@ export default {
       currentPage.value = 1;
     });
 
-    // Atualizar step quando autenticação ou calendário mudar
+    // Atualizar step quando autenticação ou agenda mudar
     watch([isAuthenticated, hasActiveCalendar], ([authenticated, hasCalendar]) => {
       if (isEditing.value) return;
 
@@ -1723,13 +1723,13 @@ export default {
         return;
       }
 
-      // Autenticado mas sem calendário → tela de seleção de calendário
+      // Autenticado mas sem agenda → tela de seleção de agenda
       if (authenticated && !hasCalendar && step.value === 'not-authenticated') {
         step.value = 'select-calendar';
         return;
       }
 
-      // Autenticado com calendário → tela de seleção de período
+      // Autenticado com agenda → tela de seleção de período
       if (authenticated && hasCalendar && (step.value === 'not-authenticated' || step.value === 'select-calendar')) {
         step.value = 'select-period';
       }
