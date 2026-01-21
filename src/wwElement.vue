@@ -901,6 +901,11 @@ export default {
       '--text-color': props.content?.textColor || '#1A202C',
       '--text-muted-color': props.content?.textMutedColor || '#718096',
       '--event-item-hover': props.content?.eventItemHoverColor || '#EDF2F7',
+      '--font-title': props.content?.titleFontSize || '20px',
+      '--font-base': props.content?.baseFontSize || '14px',
+      '--font-small': props.content?.smallFontSize || '12px',
+      '--font-button': props.content?.buttonFontSize || '14px',
+      '--font-input': props.content?.inputFontSize || '14px',
       fontFamily: props.content?.fontFamily || 'inherit',
       fontSize: props.content?.baseFontSize || '14px',
       padding: props.content?.containerPadding || '24px',
@@ -2124,14 +2129,14 @@ export default {
   }
 
   .alert-title {
-    font-size: 14px;
+    font-size: var(--font-base, 14px);
     font-weight: 600;
     margin: 0 0 2px 0;
     line-height: 1.4;
   }
 
   .alert-desc {
-    font-size: 13px;
+    font-size: var(--font-small, 13px);
     margin: 0;
     line-height: 1.4;
   }
@@ -2205,20 +2210,20 @@ export default {
 }
 
 .checklist-label {
-  font-size: 14px;
+  font-size: var(--font-base, 14px);
   font-weight: 600;
   margin: 0 0 4px 0;
 }
 
 .checklist-value {
-  font-size: 13px;
+  font-size: var(--font-small, 13px);
   margin: 0;
   font-weight: 500;
 }
 
 
 .checklist-desc {
-  font-size: 12px;
+  font-size: var(--font-small, 12px);
   color: #6B7280;
   margin: 4px 0 0 0;
   line-height: 1.4;
@@ -2229,7 +2234,7 @@ export default {
   align-items: center;
   gap: 4px;
   color: #2563EB;
-  font-size: 13px;
+  font-size: var(--font-small, 13px);
   font-weight: 600;
   background: none;
   border: none;
@@ -2307,7 +2312,7 @@ export default {
 
   .connection-description {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--font-base, 14px);
   }
 
   .progress-badge-v2 {
@@ -2372,7 +2377,7 @@ export default {
   }
 
   .req-number-badge {
-    font-size: 20px;
+    font-size: var(--font-title, 20px);
     font-weight: 700;
   }
 }
@@ -2383,7 +2388,7 @@ export default {
 }
 
 .req-number {
-  font-size: 11px;
+  font-size: var(--font-small, 11px);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2392,7 +2397,7 @@ export default {
 }
 
 .req-title {
-  font-size: 16px;
+  font-size: var(--font-base, 16px);
   font-weight: 600;
   margin: 0;
   color: var(--text-color, #1A202C);
@@ -2401,7 +2406,7 @@ export default {
 
 .req-body {
   .req-desc {
-    font-size: 13px;
+    font-size: var(--font-small, 13px);
     margin: 0 0 12px 0;
     line-height: 1.5;
   }
@@ -2414,7 +2419,7 @@ export default {
   background: rgba(0, 0, 0, 0.04);
   padding: 8px 14px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-small, 13px);
   color: var(--text-color, #1A202C);
   font-weight: 500;
 
@@ -2456,7 +2461,7 @@ export default {
   gap: 14px;
   color: var(--success-color, #38A169);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-base, 14px);
 
   .success-icon-v2 {
     width: 32px;
@@ -2509,7 +2514,7 @@ export default {
 
   .requirement-description {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--font-base, 14px);
   }
 
   .requirement-details {
@@ -2517,7 +2522,7 @@ export default {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 14px;
+      font-size: var(--font-base, 14px);
 
       svg {
         width: 16px;
@@ -2571,14 +2576,14 @@ export default {
   }
 
   .status-item-title {
-    font-size: 16px;
+    font-size: var(--font-base, 16px);
     font-weight: 600;
     color: var(--text-color);
     margin: 0 0 4px 0;
   }
 
   .status-item-status {
-    font-size: 14px;
+    font-size: var(--font-base, 14px);
     margin: 0;
   }
 
@@ -2588,7 +2593,7 @@ export default {
       justify-content: space-between;
       align-items: flex-start;
       gap: 16px;
-      font-size: 14px;
+      font-size: var(--font-base, 14px);
 
       span:first-child {
         flex-shrink: 0;
@@ -2643,7 +2648,7 @@ export default {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 14px;
+      font-size: var(--font-base, 14px);
     }
   }
 }
@@ -2687,11 +2692,11 @@ export default {
       }
 
       .alert-title {
-        font-size: 13px;
+        font-size: var(--font-small, 13px);
       }
 
       .alert-desc {
-        font-size: 12px;
+        font-size: var(--font-small, 12px);
       }
     }
 
@@ -2704,15 +2709,15 @@ export default {
     }
 
     .checklist-label {
-      font-size: 13px;
+      font-size: var(--font-small, 13px);
     }
 
     .checklist-value {
-      font-size: 12px;
+      font-size: var(--font-small, 12px);
     }
 
     .checklist-action {
-      font-size: 12px;
+      font-size: var(--font-small, 12px);
     }
   }
 
@@ -2741,16 +2746,16 @@ export default {
       }
 
       .req-number-badge {
-        font-size: 18px;
+        font-size: var(--font-title, 18px);
       }
     }
 
     .req-title {
-      font-size: 15px;
+      font-size: var(--font-base, 15px);
     }
 
     .success-banner-v2 {
-      font-size: 13px;
+      font-size: var(--font-small, 13px);
       padding: 14px 16px;
     }
   }
@@ -2767,7 +2772,7 @@ export default {
   .requirement-number {
     width: 36px !important;
     height: 36px !important;
-    font-size: 16px !important;
+    font-size: var(--font-base, 16px) !important;
 
     svg {
       width: 18px !important;
@@ -2776,15 +2781,15 @@ export default {
   }
 
   .requirement-title {
-    font-size: 15px !important;
+    font-size: var(--font-base, 15px) !important;
   }
 
   .requirement-description {
-    font-size: 13px !important;
+    font-size: var(--font-small, 13px) !important;
   }
 
   .connection-complete {
-    font-size: 13px !important;
+    font-size: var(--font-small, 13px) !important;
     padding: 12px !important;
   }
 
@@ -2806,11 +2811,11 @@ export default {
     }
 
     .status-item-title {
-      font-size: 15px !important;
+      font-size: var(--font-base, 15px) !important;
     }
 
     .status-item-status {
-      font-size: 13px !important;
+      font-size: var(--font-small, 13px) !important;
     }
 
     .status-item-details {
@@ -2830,11 +2835,11 @@ export default {
 @media (max-width: 480px) {
   .import-google-calendar {
     padding: 12px !important;
-    font-size: 13px !important;
+    font-size: var(--font-small, 13px) !important;
   }
 
   .step-title {
-    font-size: 18px !important;
+    font-size: var(--font-title, 18px) !important;
   }
 
   .auth-status {
@@ -2871,7 +2876,7 @@ export default {
   .requirement-number {
     width: 32px !important;
     height: 32px !important;
-    font-size: 14px !important;
+    font-size: var(--font-base, 14px) !important;
 
     svg {
       width: 16px !important;
@@ -2880,15 +2885,15 @@ export default {
   }
 
   .requirement-title {
-    font-size: 14px !important;
+    font-size: var(--font-base, 14px) !important;
   }
 
   .requirement-description {
-    font-size: 12px !important;
+    font-size: var(--font-small, 12px) !important;
   }
 
   .connection-complete {
-    font-size: 12px !important;
+    font-size: var(--font-small, 12px) !important;
     padding: 10px !important;
     flex-direction: column;
     text-align: center;
@@ -2913,15 +2918,15 @@ export default {
     }
 
     .status-item-title {
-      font-size: 14px !important;
+      font-size: var(--font-base, 14px) !important;
     }
 
     .status-item-status {
-      font-size: 12px !important;
+      font-size: var(--font-small, 12px) !important;
     }
 
     .status-item-details {
-      font-size: 12px !important;
+      font-size: var(--font-small, 12px) !important;
     }
   }
 }
@@ -3002,14 +3007,14 @@ export default {
 
 .modal-title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--font-title, 18px);
   font-weight: 600;
   color: #1A202C;
 }
 
 .modal-description {
   margin: 0 0 24px 0;
-  font-size: 14px;
+  font-size: var(--font-base, 14px);
   line-height: 1.6;
   color: #4A5568;
 }
@@ -3023,7 +3028,7 @@ export default {
 .btn-modal {
   padding: 10px 20px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: var(--font-base, 14px);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -3089,11 +3094,11 @@ export default {
   }
 
   .modal-title {
-    font-size: 16px;
+    font-size: var(--font-base, 16px);
   }
 
   .modal-description {
-    font-size: 13px;
+    font-size: var(--font-small, 13px);
   }
 
   .modal-actions {
